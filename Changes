@@ -1,5 +1,8 @@
 Revision history for Perl module ShiftJIS::String.
 
+0.13  Wed Dec 26 01:36:34 2001
+    - performance of strtr() and trclosure() in XS is improved.
+
 0.12  Mon Dec 24 17:57:11 2001
     - strtr() and trclosure() use XS when task is simpler,
       i.e. both SEARCHLIST and REPLACEMENTLIST are strings (not an arrayref),

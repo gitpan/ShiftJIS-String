@@ -456,24 +456,24 @@ in the specified string and returns the converted string.
 =head1 CAVEAT
 
 A legal Shift_JIS character in this module
-must match the following regexp:
+must match the following regular expression:
 
    [\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]
 
-Any string from external source should be checked by C<issjis()>
+Any string from an external source should be checked by C<issjis()>
 function, excepting you know it is surely encoded in Shift_JIS.
 
 Use of an illegal Shift_JIS string may lead to odd results.
 
-Some Shift_JIS double-byte characters have one of C<[\x40-\x7E]>
-as the trail byte.
+Some Shift_JIS double-byte characters have a trailing byte
+in the range of C<[\x40-\x7E]>, viz.,
 
    @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
 
-The Perl lexer doesn't take any care to these characters,
+The Perl lexer (parhaps) doesn't take any care to these bytes,
 so they sometimes make trouble.
-e.g. the quoted literal C<"•\"> causes fatal error,
-since its trail byte C<0x5C> backslashes the closing quote.
+e.g. the quoted literal C<"•\"> causes a B<fatal error>,
+since its trailing byte C<0x5C> backslashes the closing quote.
 
 Such a problem doesn't arise when the string is gotten from
 any external resource. 

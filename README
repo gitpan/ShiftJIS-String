@@ -1,4 +1,4 @@
-A version 0.12
+A version 0.13
 ==============
 
 NAME
@@ -11,12 +11,12 @@ SYNOPSIS
   $str = 'プログラミング Perl';
   $len = length(substr($str, 2 + index($str, 'ラミ')));
    # $len == 7, length in characters of 'ング Perl'.
-   # CORE::length should be used to get length in bytes.
+   # CORE::length can be used to get length in bytes.
 
 DESCRIPTION
 
 This module provides some functions which emulate
-the corresponding CORE functions and helps someone
+the corresponding CORE functions and will help someone
 to manipulate multiple-byte character sequences in Shift_JIS encoding.
 
 INSTALLATION

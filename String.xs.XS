@@ -10,8 +10,8 @@
 #define isSJ2OKp(p)   (isSJ1ST(*(p)) && isSJ2ND(*((p)+1)))
 #define isSJ2BTp(p,e) (isSJ1ST(*(p)) && (((p)+1) < (e)))
 
-#define BYTES_PER_SJIS_ROW (376)
-#define VIDUAL_CHAR_MAX    (4)
+#define BYTES_PER_SJIS_ROW (376) /* 94 * 2 * 2; for mkrange() */
+#define VIDUAL_CHAR_MAX    (4)   /* for visualize_char() */
 
 /* Roman */
 #define isRCNTRL(c) ((0x00<=(c) && (c)<=0x1F) || (c)==0x7F)
@@ -58,13 +58,6 @@
 #define isHMARU(c) ((c)==0xDF)
 #define isH_VUp(p) ((*(p))==0xB3 && (*((p)+1))==0xDE)
 
-typedef struct strtr_table {
-    U8   frchar[2]; /* from-multibyte char */
-    U8   tochar[2]; /* to-multibyte char */
-    char frbyte;    /* length of from-multibyte char */
-    char tobyte;    /* length of to-multibyte char */
-} TABLE_t;
-
 /* 0xA0 to 0xDF : JIS X 0201 => Trailing byte : JIS X 0208 */
 static STDCHAR HKANA_TRAIL[] = {
     0x00, 0x42, 0x75, 0x76, 0x41, 0x45, 0x92, 0x40,
@@ -107,7 +100,7 @@ static U16 ZHIRA_TRAIL[] = {
     0xB4,   0xA6,   0xDD
 };
 
-int issjis(U8 * str, STRLEN byte)
+static int issjis(U8 * str, STRLEN byte)
 {
     U8 *p, *e;
     e = str + byte;
@@ -119,7 +112,7 @@ int issjis(U8 * str, STRLEN byte)
     return(1);
 }
 
-I32 length (U8* str, STRLEN byte)
+static I32 length (U8* str, STRLEN byte)
 {
     U8 *p, *e;
     I32 len = 0;
@@ -129,7 +122,8 @@ I32 length (U8* str, STRLEN byte)
     return len;
 }
 
-void bytelist (U8 *s, STRLEN byte, U8 *one, U8 *two, STRLEN *olp, STRLEN *tlp)
+static void bytelist
+ (U8 *s, STRLEN byte, U8 *one, U8 *two, STRLEN *olp, STRLEN *tlp)
 {
     U8 *e, *p, *o, *t;
     o = one;
@@ -146,7 +140,7 @@ void bytelist (U8 *s, STRLEN byte, U8 *one, U8 *two, STRLEN *olp, STRLEN *tlp)
     *o = *t = '\0';
 }
 
-char* strNchr (U8 * s, STRLEN byte, U8* mbc, int n)
+static char* strNchr (U8 * s, STRLEN byte, U8* mbc, int n)
 {
     U8 *e, *p;
     e = s + byte;
@@ -160,7 +154,7 @@ char* strNchr (U8 * s, STRLEN byte, U8* mbc, int n)
  * internal for mkrange
  * a, b should be 0 or 0x81-0x9F or 0xE0-0xFC
  */
-int diff_by_lead (U8 a, U8 b)
+static int diff_by_lead (U8 a, U8 b)
 {
     U8 min, max;
     if (a == b) return BYTES_PER_SJIS_ROW;
@@ -174,7 +168,7 @@ int diff_by_lead (U8 a, U8 b)
 /*
  * internal for mkrange
  */
-U8* range_expand (U8* d, U16 fr, U16 to)
+static U8* range_expand (U8* d, U16 fr, U16 to)
 {
     int i, ini, fin;
 
@@ -233,7 +227,7 @@ U8* range_expand (U8* d, U16 fr, U16 to)
 /*
  * internal for mkrange
  */
-U8* range_expand_rev (U8* d, U16 fr, U16 to)
+static U8* range_expand_rev (U8* d, U16 fr, U16 to)
 {
     int i, ini, fin;
 
@@ -292,7 +286,7 @@ U8* range_expand_rev (U8* d, U16 fr, U16 to)
 /*
  * for error message
  */
-U8* vidualize_char (U8* d, U16 c)
+static U8* vidualize_char (U8* d, U16 c)
 {
     if (isRCNTRL(c)) {
 	*d++ = '\\';
@@ -309,6 +303,35 @@ U8* vidualize_char (U8* d, U16 c)
 	    *d++ =  c       & 0xFF;
     }
     return d;
+}
+
+/********
+for strtr_mktable()
+the first 256bytes: index[256];
+the next 2 bytes:   tolast[2]
+the following: tochar[2] in 400 bytes per 1 fromchar row.
+*********/
+#define StrtrIndexPad    (258)
+#define StrtrPerSjisRow  (400)
+#define StrtrUndefByte   (0xFF)
+#define StrtrDeleteByte  (0xFE)
+
+/* row-cell is of "fromchar" */
+static U8* strtr_tochar_ptr(U8* tbl, U8 row, U8 cell)
+{
+    U8 idx, *ip;
+    idx = tbl[row];
+    if (idx == StrtrUndefByte) return NULL;
+    ip = tbl + StrtrIndexPad + (idx * StrtrPerSjisRow);
+
+    if (row) {
+	if (!isSJ2ND(cell)) return NULL;
+	ip += 2 * (cell - 0x40 - (0x80 <= cell));
+    } else {
+	if (!isSJ1BT(cell)) return NULL;
+	ip += 2 * (cell - 0x21 * (0xA1 <= cell));
+    }
+    return ip;
 }
 
 
@@ -457,11 +480,10 @@ possubstr (src,off,len=-0,rep=&PL_sv_undef)
     I32 slen, ini, fin, cnt;
     bool except = FALSE;
   PPCODE:
-    if (SvROK(src)) {
-	s = (U8*)SvPV_force(SvRV(src), sbyte);
-    } else {
-	s = (U8*)SvPV(src, sbyte);
-    }
+    s = SvROK(src)
+	? (U8*)SvPV_force(SvRV(src), sbyte)
+	: (U8*)SvPV(src, sbyte);
+
     e = s + sbyte;
     slen = length(s,sbyte);
     if (slen < off) except = TRUE;
@@ -510,11 +532,10 @@ hiXka(src)
     SV* dst;
     I32 cnt = 0;
   CODE:
-    if (SvROK(src)) {
-	s = (U8*)SvPV_force(SvRV(src), sbyte);
-    } else {
-	s = (U8*)SvPV(src, sbyte);
-    }
+    s = SvROK(src)
+	? (U8*)SvPV_force(SvRV(src), sbyte)
+	: (U8*)SvPV(src, sbyte);
+
     e = s + sbyte;
     dbyte = sbyte * 2 + 1;
     dst = newSV(dbyte);
@@ -596,11 +617,10 @@ kanaH2Z(src)
     SV* dst;
     I32 cnt = 0;
   CODE:
-    if (SvROK(src)) {
-	s = (U8*)SvPV_force(SvRV(src), sbyte);
-    } else {
-	s = (U8*)SvPV(src, sbyte);
-    }
+    s = SvROK(src)
+	? (U8*)SvPV_force(SvRV(src), sbyte)
+	: (U8*)SvPV(src, sbyte);
+
     e = s + sbyte;
     dbyte = sbyte * 2 + 1;
     dst = newSV(dbyte);
@@ -657,11 +677,10 @@ kanaZ2H(src)
     U16 uv;
     I32 cnt = 0;
   CODE:
-    if (SvROK(src)) {
-	s = (U8*)SvPV_force(SvRV(src), sbyte);
-    } else {
-	s = (U8*)SvPV(src, sbyte);
-    }
+    s = SvROK(src)
+	? (U8*)SvPV_force(SvRV(src), sbyte)
+	: (U8*)SvPV(src, sbyte);
+
     e = s + sbyte;
     dbyte = sbyte + 1;
     dst = newSV(dbyte);
@@ -734,11 +753,10 @@ spaceH2Z(src)
     SV* dst;
     I32 cnt = 0;
   CODE:
-    if (SvROK(src)) {
-	s = (U8*)SvPV_force(SvRV(src), sbyte);
-    } else {
-	s = (U8*)SvPV(src, sbyte);
-    }
+    s = SvROK(src)
+	? (U8*)SvPV_force(SvRV(src), sbyte)
+	: (U8*)SvPV(src, sbyte);
+
     e = s + sbyte;
     dbyte = sbyte * 2 + 1;
     dst = newSV(dbyte);
@@ -782,11 +800,10 @@ spaceZ2H(src)
     U16 uv;
     I32 cnt = 0;
   CODE:
-    if (SvROK(src)) {
-	s = (U8*)SvPV_force(SvRV(src), sbyte);
-    } else {
-	s = (U8*)SvPV(src, sbyte);
-    }
+    s = SvROK(src)
+	? (U8*)SvPV_force(SvRV(src), sbyte)
+	: (U8*)SvPV(src, sbyte);
+
     e = s + sbyte;
     dbyte = sbyte + 1;
     dst = newSV(dbyte);
@@ -966,85 +983,38 @@ mkrange(src, rev = &PL_sv_undef)
 
 
 SV*
-strtr_light (src, search, replace, mod = "")
+strtr_light (src, table, mod = "")
     SV * src;
-    SV * search;
-    SV * replace;
+    SV * table;
     char * mod;
-  PROTOTYPE: $$$;$
+  PROTOTYPE: $$;$
   PREINIT:
     SV *dst;
-    TABLE_t *from2to, *i_table, *lasttable, *foundtable;
     bool mod_c, mod_d, mod_s, found;
     int modes;
-    U8 *p, *e, *s, *d, *fr, *to;
-    STRLEN sbyte, dbyte, fbyte, tbyte;
-    U8 mb[2], pre[2], tmp[2], *tolast;
-    STRLEN mbyte, prebyte, tmpbyte, lbyte;
-    int i, flen, tlen, cnt, sizetable;
+    U8 *p, *e, *s, *d, *tbl;
+    STRLEN sbyte, dbyte, tblbyte;
+    U8 fr[2], *to, tolast[2], pre[2], tmp[2];
+    STRLEN fbyte, tbyte, lbyte, prebyte, tmpbyte;
+    int i, tlen, cnt;
   CODE:
-    s = SvROK(src) ? (U8*)SvPV_force(SvRV(src), sbyte) : (U8*)SvPV(src, sbyte);
+    s = SvROK(src)
+	? (U8*)SvPV_force(SvRV(src), sbyte)
+	: (U8*)SvPV(src, sbyte);
 
-    fr = (U8*)SvPV(search,  fbyte);
-    to = (U8*)SvPV(replace, tbyte);
-    flen = length(fr, fbyte);
-    tlen = length(to, tbyte);
+    tbl = (U8*)SvPV(table, tblbyte);
+
+    tolast[0] = tbl[StrtrIndexPad - 2];
+    tolast[1] = tbl[StrtrIndexPad - 1];
+    lbyte = (tolast[0] == StrtrUndefByte) ? 0 : tolast[0] ? 2 : 1;
+
+    /* now only bool, not a string-length */
+    tlen = (tolast[0] != StrtrUndefByte);
 
     mod_c = strchr(mod,'c') != NULL;
     mod_d = strchr(mod,'d') != NULL;
     mod_s = strchr(mod,'s') != NULL;
     modes = (mod_s << 2) | (mod_d << 1) | mod_c;
-
-    sizetable = flen > tlen ? flen : tlen;
-    Newz(0, from2to, sizetable, TABLE_t);
-
-    e = fr + fbyte;
-    for (p = fr, i_table = from2to; p < e; i_table++) {
-	if (isSJ2BTp(p,e)) {
-	    i_table->frchar[0] = *p++;
-	    i_table->frchar[1] = *p++;
-	    i_table->frbyte    = 2;
-	} else {
-	    i_table->frchar[0] = *p++;
-	    i_table->frchar[1] = '\0';
-	    i_table->frbyte    = 1;
-	}
-    }
-
-    e = to + tbyte;
-    for (p = to, i_table = from2to; p < e; i_table++) {
-	if (isSJ2BTp(p,e)) {
-	    i_table->tochar[0] = *p++;
-	    i_table->tochar[1] = *p++;
-	    i_table->tobyte    = 2;
-	} else {
-	    i_table->tochar[0] = *p++;
-	    i_table->tochar[1] = '\0';
-	    i_table->tobyte    = 1;
-	}
-    }
-
-    if (tlen) {
-	lasttable = from2to + tlen - 1;
-	tolast = lasttable->tochar;
-	lbyte  = lasttable->tobyte;
-	if (!mod_d) {
-	    for (i = tlen; i < flen; i++) {
-		from2to[i].tochar[0] = tolast[0];
-		from2to[i].tochar[1] = tolast[1];
-		from2to[i].tobyte    = lbyte;
-	    }
-	}
-    } else {
-	lasttable = NULL;
-	if(!mod_d || mod_c){
-	    for (i = 0; i < flen; i++) {
-		from2to[i].tochar[0] = from2to[i].frchar[0];
-		from2to[i].tochar[1] = from2to[i].frchar[1];
-		from2to[i].tobyte    = from2to[i].frbyte;
-	    }
-	}
-    }
 
     dbyte = sbyte * 2 + 1;
     dst = newSV(dbyte);
@@ -1057,26 +1027,22 @@ strtr_light (src, search, replace, mod = "")
     e = s + sbyte;
     for (p = s, cnt = 0; p < e; ) {
 	if (isSJ2BTp(p,e)) {
-	    mb[0] = *p++;
-	    mb[1] = *p++;
-	    mbyte = 2;
+	    fr[0] = *p++;
+	    fr[1] = *p++;
+	    fbyte = 2;
 	} else {
-	    mb[0] = *p++;
-	    mb[1] = '\0';
-	    mbyte = 1;
+	    fr[0] = 0;
+	    fr[1] = *p++;
+	    fbyte = 1;
 	}
 
-	found = 0;
+	found = FALSE;
+	tbyte = 0;
+	to = strtr_tochar_ptr(tbl, fr[0], fr[1]);
 
-	for (i = 0; i < flen; i++) {
-	    if (mbyte == from2to[i].frbyte
-	     && mb[0] == from2to[i].frchar[0]
-	     && mb[1] == from2to[i].frchar[1])
-	    {
-		found = 1;
-		foundtable = from2to + i;
-		break;
-	    }
+	if (to != NULL && *to != StrtrUndefByte) {
+	    found = TRUE;
+	    tbyte = (*to == StrtrDeleteByte) ? 0 : (*to != 0) ? 2 : 1;
 	}
 
 	if(mod_c ^ found) cnt++;
@@ -1086,22 +1052,22 @@ strtr_light (src, search, replace, mod = "")
 	    case 2 : /* c: false, d: true,  s: false */
 
 		if (found) {
-		    if (foundtable->tobyte > 0) *d++ = foundtable->tochar[0];
-		    if (foundtable->tobyte > 1) *d++ = foundtable->tochar[1];
+		    if (tbyte > 1) *d++ = to[0];
+		    if (tbyte > 0) *d++ = to[1];
 		} else {
-		    if (mbyte > 0) *d++ = mb[0];
-		    if (mbyte > 1) *d++ = mb[1];
+		    if (fbyte > 1) *d++ = fr[0];
+		    if (fbyte > 0) *d++ = fr[1];
 		}
 		break;
 
 	    case 1 : /* c: true, d: false, s: false */
 
 		if (!found && tlen) {
-		    if (lbyte > 0) *d++ = tolast[0];
-		    if (lbyte > 1) *d++ = tolast[1];
+		    if (lbyte > 1) *d++ = tolast[0];
+		    if (lbyte > 0) *d++ = tolast[1];
 		} else {
-		    if (mbyte > 0) *d++ = mb[0];
-		    if (mbyte > 1) *d++ = mb[1];
+		    if (fbyte > 1) *d++ = fr[0];
+		    if (fbyte > 0) *d++ = fr[1];
 		}
 		break;
 
@@ -1109,8 +1075,8 @@ strtr_light (src, search, replace, mod = "")
 	    case 7 : /* c: true, d: true, s: true  */
 
 		if (found) {
-		    if (mbyte > 0) *d++ = mb[0];
-		    if (mbyte > 1) *d++ = mb[1];
+		    if (fbyte > 1) *d++ = fr[0];
+		    if (fbyte > 0) *d++ = fr[1];
 		}
 		break;
 
@@ -1119,16 +1085,14 @@ strtr_light (src, search, replace, mod = "")
 
 		if (!found) {
 		    pre[0] = pre[1] = prebyte = 0;
-		    if (mbyte > 0) *d++ = mb[0];
-		    if (mbyte > 1) *d++ = mb[1];
-	        } else if (foundtable->tobyte
-			&& memcmp(pre, foundtable->tochar,2) )
-		{
-		    if (foundtable->tobyte > 0) *d++ = foundtable->tochar[0];
-		    if (foundtable->tobyte > 1) *d++ = foundtable->tochar[1];
-		    pre[0]  = foundtable->tochar[0];
-		    pre[1]  = foundtable->tochar[1];
-		    prebyte = foundtable->tobyte;
+		    if (fbyte > 1) *d++ = fr[0];
+		    if (fbyte > 0) *d++ = fr[1];
+	        } else if (tbyte && memcmp(pre, to, 2)) {
+		    if (tbyte > 1) *d++ = to[0];
+		    if (tbyte > 0) *d++ = to[1];
+		    pre[0]  = to[0];
+		    pre[1]  = to[1];
+		    prebyte = tbyte;
 	        }
 		break;
 
@@ -1136,24 +1100,24 @@ strtr_light (src, search, replace, mod = "")
 
 		if (found) {
 		    pre[0] = pre[1] = prebyte = 0;
-		    if (mbyte > 0) *d++ = mb[0];
-		    if (mbyte > 1) *d++ = mb[1];
+		    if (fbyte > 1) *d++ = fr[0];
+		    if (fbyte > 0) *d++ = fr[1];
 		} else {
 		    tmp[0] = tmp[1] = tmpbyte = 0;
 		    if (tlen) {
-			if (lbyte > 0) tmp[0] = tolast[0];
-			if (lbyte > 1) tmp[1] = tolast[1];
+			if (lbyte > 1) tmp[0] = tolast[0];
+			if (lbyte > 0) tmp[1] = tolast[1];
 			tmpbyte = lbyte;
 		    } else {
-			if (mbyte > 0) tmp[0] = mb[0];
-			if (mbyte > 1) tmp[1] = mb[1];
-			tmpbyte = mbyte;
+			if (fbyte > 1) tmp[0] = fr[0];
+			if (fbyte > 0) tmp[1] = fr[1];
+			tmpbyte = fbyte;
 		    }
 		    if (memcmp(tmp, pre, 2)) {
-			if (tmpbyte > 0) *d++ = tmp[0];
-			if (tmpbyte > 1) *d++ = tmp[1];
-			pre[0] = tmp[0];
-			pre[1] = tmp[1];
+			if (tmpbyte > 1) *d++ = tmp[0];
+			if (tmpbyte > 0) *d++ = tmp[1];
+			pre[0]  = tmp[0];
+			pre[1]  = tmp[1];
 			prebyte = tmpbyte;
 		    }
 		}
@@ -1168,8 +1132,6 @@ strtr_light (src, search, replace, mod = "")
     dbyte = d - (U8*)SvPVX(dst);
     SvCUR_set(dst, dbyte);
 
-    Safefree(from2to);
-
     if (SvROK(src)) {
 	RETVAL = newSViv(cnt);
 	sv_setsv(SvRV(src), dst);
@@ -1179,3 +1141,127 @@ strtr_light (src, search, replace, mod = "")
   OUTPUT:
     RETVAL
 
+
+
+SV*
+strtr_mktable (search, replace, mod = "")
+    SV * search;
+    SV * replace;
+    char * mod;
+  PROTOTYPE: $$;$
+  PREINIT:
+    SV *dst;
+    bool mod_c, mod_d;
+    U8 *p, *d, *dend, *f, *fend, *t, *tend, *here;
+    STRLEN dbyte, fbyte, tbyte;
+    U8 idx = 0, fr[2], to[2], tolast[2];
+  CODE:
+
+    f = (U8*)SvPV(search,  fbyte);
+    fend = f + fbyte;
+    t = (U8*)SvPV(replace, tbyte);
+    tend = t + tbyte;
+
+    tolast[0] = tolast[1] = StrtrUndefByte;
+    if (tbyte == 0) t = NULL;
+
+    mod_c = strchr(mod,'c') != NULL;
+    mod_d = strchr(mod,'d') != NULL;
+
+    dbyte = StrtrIndexPad;
+    dst = newSV(dbyte + 1);
+    (void)SvPOK_only(dst);
+    d = (U8*)SvPVX(dst);
+
+    p = d;
+    dend = d + StrtrIndexPad;
+    while(p < dend) *p++ = StrtrUndefByte;
+
+    while (f < fend) {
+	if (isSJ2BTp(f,fend)) {
+	    *fr = *f++;
+	    f++;
+	} else {
+	    *fr = 0;
+	    f++;
+	}
+	if (d[*fr] == StrtrUndefByte) {
+	    dbyte += StrtrPerSjisRow;
+	    d[*fr] = idx++;
+	}
+    }
+
+    d = (U8*)SvGROW(dst, dbyte + 1);
+    if (!d) croak("ShiftJIS::String Panic in strtr_mktable()");
+
+    p = d + StrtrIndexPad;
+    dend = d + dbyte;
+    while(p < dend) *p++ = StrtrUndefByte;
+
+    f = (U8*)SvPVX(search);
+
+    while (f < fend) {
+	if (isSJ2BTp(f,fend)) {
+	    fr[0] = *f++;
+	    fr[1] = *f++;
+	} else {
+	    fr[0] = 0;
+	    fr[1] = *f++;
+	}
+	if (t && t < tend) {
+	    if (isSJ2BTp(t,tend)) {
+		to[0] = *t++;
+		to[1] = *t++;
+	    } else {
+		to[0]  = 0;
+		to[1] = *t++;
+	    }
+	}
+
+	here = strtr_tochar_ptr(d, fr[0], fr[1]);
+
+	if (here && *here == StrtrUndefByte) {
+	    if (tbyte) {
+		if (t) {
+		    here[0] = to[0];
+		    here[1] = to[1];
+		} else if (!mod_d) {
+		    here[0] = tolast[0];
+		    here[1] = tolast[1];
+		} else {
+		    here[0] = here[1] = StrtrDeleteByte;
+		}
+	    } else {
+		if (!mod_d || mod_c) {
+		    here[0] = fr[0];
+		    here[1] = fr[1];
+		} else {
+		    here[0] = here[1] = StrtrDeleteByte;
+		}
+	    }
+	}
+
+	if (t && t >= tend) {
+	    t = NULL;
+	    tolast[0] = to[0];
+	    tolast[1] = to[1];
+	}
+    }
+
+    while (t && t < tend) {
+	if (isSJ2BTp(t,tend)) {
+	    tolast[0] = *t++;
+	    tolast[1] = *t++;
+	} else {
+	    tolast[0] = 0;
+	    tolast[1] = *t++;
+	}
+    }
+
+    d[StrtrIndexPad - 2] = tolast[0];
+    d[StrtrIndexPad - 1] = tolast[1];
+
+    SvCUR_set(dst, dbyte);
+    RETVAL = dst;
+  OUTPUT:
+    RETVAL

@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '0.12';
+$VERSION = '0.13';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -79,9 +79,10 @@ sub trclosure($$;$$$)
       $fr = mkrange($fr, $r);
       $to = mkrange($to, $r);
     }
+    my $table = strtr_mktable($fr, $to, $mod);
     return sub {
       my $src = shift;
-      strtr_light($src, $fr, $to, $mod);
+      strtr_light($src, $table, $mod);
     };
   }
 
@@ -115,6 +116,7 @@ sub trclosure($$;$$$)
     @to ? defined $to[$i] ? $to[$i] : $d ? '' : $to[-1]
         : $d && !$c ? '' : $fr[$i];
   }
+
   return
     $modes == 0 || $modes == 2 ?
       sub { # $c: false, $d: true/false, $s: false, $mod:  0 or 2
