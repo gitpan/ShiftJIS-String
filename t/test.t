@@ -1,9 +1,5 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
 
-######################### We start with some black magic to print on failure.
-
-BEGIN { $| = 1; print "1..20\n"; }
+BEGIN { $| = 1; print "1..22\n"; }
 END {print "not ok 1\n" unless $loaded;}
 
 use ShiftJIS::String qw(:all);
@@ -12,7 +8,7 @@ $^W = 1;
 $loaded = 1;
 print "ok 1\n";
 
-######################### End of black magic.
+#####
 
 $str = "なんといおうか";
 print strtr(\$str,"あいうえお", "アイウエオ") . "  " . $str
@@ -98,6 +94,9 @@ print 1
   && kanaZ2H("") eq ""
   && kataZ2H("") eq ""
   && spaceZ2H("") eq ""
+  ? "ok" : "not ok", " 14\n";
+
+print 1
   && hi2ka(0)   eq 0
   && ka2hi(0)   eq 0
   && hiXka(0)   eq 0
@@ -116,7 +115,7 @@ print 1
   && kanaZ2H(1) eq 1
   && kataZ2H(1) eq 1
   && spaceZ2H(1) eq 1
-  ? "ok" : "not ok", " 14\n";
+  ? "ok" : "not ok", " 15\n";
 
 {
   my $digit_tr = trclosure(
@@ -132,23 +131,13 @@ print 1
   my $restr1 = &$digit_tr($frstr1);
   my $restr2 = &$digit_tr($frstr2);
 
-  print $tostr1 eq $restr1 ? "ok" : "not ok", " 15\n";
-  print $tostr2 eq $restr2 ? "ok" : "not ok", " 16\n";
+  print $tostr1 eq $restr1 ? "ok" : "not ok", " 16\n";
+  print $tostr2 eq $restr2 ? "ok" : "not ok", " 17\n";
 }
 
 $str = 'プログラミング Perl';
 $len = length(substr($str, 2 + index($str, 'ラミ')));
-print $len == 7 ? "ok" : "not ok", " 17\n";
-
-print strspn("XZ\0Z\0Y", "\0X\0YZ") == 6
-  &&  strcspn("Perlは面白い。", "XY\0r") == 2
-  &&  strspn("+0.12345*12", "+-.0123456789") == 8
-  &&  strcspn("Perlは面白い。", "赤青黄白黒") == 6
-  &&  strspn("", "123") == 0
-  &&  strcspn("", "123") == 0
-  &&  strspn("あいうえお", "") == 0
-  &&  strcspn("あいうえお", "") == 5
- ? "ok" : "not ok", " 18\n";
+print $len == 7 ? "ok" : "not ok", " 18\n";
 
 print strtr(
     "&lt;B&gt;&apos;&amp;&plusmn; &quot;&auml;&quot;&lt;/B&gt;",
@@ -167,3 +156,22 @@ print strtr(
     "")
   eq "Csar ther Gthe" ? "ok" : "not ok", " 20\n";
 
+$str = "0123456789";
+$lval  = &substr(\$str,3,1);
+$$lval = "あい";
+$lval  = &substr(\$str,3,1);
+$$lval = "a";
+
+print $str eq "012aい456789"
+	? "ok" : "not ok", " 21\n";
+
+$str = "0123456789";
+$lval  = &substr(\$str,3,1);
+$$lval = "あい";
+$$lval = "a";
+
+print $str eq "012a\xA0い456789"
+	? "ok" : "not ok", " 22\n";
+
+1;
+__END__

@@ -1,7 +1,3 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
-
-######################### We start with some black magic to print on failure.
 
 BEGIN { $| = 1; print "1..11\n"; }
 END {print "not ok 1\n" unless $loaded;}
@@ -11,7 +7,7 @@ $^W = 1;
 $loaded = 1;
 print "ok 1\n";
 
-######################### End of black magic.
+#####
 
 print 0 eq length("")
   ? "ok" : "not ok", " 2\n";
@@ -42,3 +38,6 @@ print 11 == length("‚ ‚©‚³‚½‚È\000‚Í‚Ü‚â‚ç‚í")
 
 print 12 == length("AIU\000EO“ú–{\000Š¿Žš\x00")
   ? "ok" : "not ok", " 11\n";
+
+1;
+__END__

@@ -1,7 +1,3 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
-
-######################### We start with some black magic to print on failure.
 
 BEGIN { $| = 1; print "1..16\n"; }
 END {print "not ok 1\n" unless $loaded;}
@@ -17,7 +13,7 @@ if ($] < 5.005) {
   exit;
 }
 
-######################### End of black magic.
+#####
 
 print 'abc‚ ‚`‚a‚bxyz' eq tolower 'AbC‚ ‚`‚a‚bXYz'
   ? "ok" : "not ok", " 2\n";
@@ -64,3 +60,5 @@ print spaceH2Z '‚ ‚¢' eq '‚ ‚¢'
 print spaceZ2H '‚ ‚¢' eq '‚ ‚¢'
   ? "ok" : "not ok", " 16\n";
 
+1;
+__END__

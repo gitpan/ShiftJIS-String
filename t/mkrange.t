@@ -1,7 +1,3 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
-
-######################### We start with some black magic to print on failure.
 
 BEGIN { $| = 1; print "1..16\n"; }
 END {print "not ok 1\n" unless $loaded;}
@@ -11,7 +7,7 @@ $^W = 1;
 $loaded = 1;
 print "ok 1\n";
 
-######################### End of black magic.
+#####
 
 print mkrange("") eq ""
    && mkrange('-+\-XYZ-') eq "-+-XYZ-"
@@ -56,3 +52,6 @@ print strrev(mkrange('9-0',1))   eq '0123456789'
   ? "ok" : "not ok", " 15\n";
 print strrev(mkrange("\x81\x40-\x00",1)) eq mkrange("\x00-\x81\x40")
   ? "ok" : "not ok", " 16\n";
+
+1;
+__END__

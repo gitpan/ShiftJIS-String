@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '1.00';
+$VERSION = '1.01';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -15,6 +15,8 @@ require AutoLoader;
 %EXPORT_TAGS = (
     issjis => [qw/issjis/],
     string => [qw/length index rindex strspn strcspn strrev substr strsplit/],
+    'span' => [qw/strspn strcspn rspan rcspan/],
+    'trim' => [qw/trim ltrim rtrim/],
     'cmp'  => [qw/strcmp strEQ strNE strLT strLE strGT strGE strxfrm/],
     ctype  => [qw/toupper tolower/],
     'tr'   => [qw/mkrange strtr trclosure/],

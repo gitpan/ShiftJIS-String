@@ -1,7 +1,3 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
-
-######################### We start with some black magic to print on failure.
 
 BEGIN { $| = 1; print "1..6\n"; }
 END {print "not ok 1\n" unless $loaded;}
@@ -11,7 +7,8 @@ local $^W = 0;
 $loaded = 1;
 print "ok 1\n";
 
-######################### End of black magic.
+#####
+
 {
   my $printZ2H = trclosure(
     '‚O-‚X‚`-‚y‚-‚š@{|HI”“•—–ƒ„ijmnop',
@@ -80,3 +77,6 @@ print "ok 1\n";
   }
   print ! $NG ? "ok 6\n" : "not ok 6\n";
 }
+
+1;
+__END__

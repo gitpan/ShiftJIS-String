@@ -1,16 +1,21 @@
 Revision history for Perl module ShiftJIS::String.
 
+1.01  Tue Apr 29 10:49:07 2003
+    - added trim(), ltrim(), rtrim(), rspan(), rcspan().
+    - fix: With Perl 5.003, index and rindex were wrong
+      when SUBSTR is \0-terminated.
+
 1.00  Sat Sep 15 17:12:22 2002
     - strtr supports 'h' modifier (returns a hash or a hashref).
-    - add POD in Japanese (see *.pod.jp)
+    - added POD in Japanese (see *.pod.jp)
 
 0.20  Sat May 11 15:29:05 2002
-    - add a new test, t/capture.t.
+    - added a new test, t/capture.t.
     - [XS] unreferenced local variables are removed.
-    - modify doc and codes.
+    - modified doc and codes.
 
 0.19  Sat Jan 12 20:21:16 2002
-    - [XS] add some missing sv_2mortal().
+    - [XS] added some missing sv_2mortal().
 
 0.18  Sat Jan 12 15:11:35 2002
     - Perl 5.003 warns bareword 'cmp'
@@ -18,11 +23,12 @@ Revision history for Perl module ShiftJIS::String.
     - tweaks to internal of XS.
 
 0.17  Sat Jan 05 15:23:18 2002
-    - add strxfrm.
-    - modify internal of strcmp and other comparison functions.
+    - added strxfrm().
+    - modified internal of strcmp and other comparison functions.
 
 0.16  Wed Jan 02 13:25:02 2002
-    - add strsplit; strcmp and strEQ, strNE, strLT, strLE, strGT, strGE.
+    - added strcmp(), strEQ(), strNE(), strLT(), strLE(), strGT(), strGE(),
+      and strsplit().
 
 0.15  Sun Dec 30 10:24:36 2001
     - bug fix (XS): when toupper, tolower, strrev had gotten
@@ -64,13 +70,13 @@ Revision history for Perl module ShiftJIS::String.
     - modify t/subst.t (thank you, Andreas Marcel Riechert)
 
 0.06  Wed Jun  6 22:11:38 2001
-    - add README. (thank you, Andreas Marcel Riechert)
+    - added README. (thank you, Andreas Marcel Riechert)
 
 0.05  Mon Jun  4 23:15:12 2001
     - make ./t/*.t files.
 
 0.04  Sat May 12 15:44:25 2001
-    - deprecate split() and related functions. use ShiftJIS::Regexp.
+    - deprecated split() and related functions. use ShiftJIS::Regexp.
 
 0.03  Sun May  6 23:52:02 2001
     - bug fix about double byte characters in the pattern fot split().

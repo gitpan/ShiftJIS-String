@@ -20,9 +20,11 @@ t/mkrange.t
 t/strcmp.t
 t/strxfrm.t
 t/strsplit.t
+t/strspn.t
 t/subst.t
 t/substr.t
 t/test.t
 t/tr.t
-t/tr_h.t
+t/trhisto.t
+t/trim.t
 t/unary.t

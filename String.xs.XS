@@ -490,6 +490,116 @@ strspn(src, search)
 
 
 void
+rspan(src, search)
+    SV *src
+    SV *search
+  PROTOTYPE: $$
+  ALIAS:
+    rcspan = 1
+  PREINIT:
+    U8 *s, *p, *e, *lst, *one, *two;
+    STRLEN sbyte, lbyte, ol = 0, tl = 0;
+    I32 ret = 0, cnt = 0;
+    bool prefound, curfound;
+  PPCODE:
+    s = (U8*)SvPV(src,sbyte);
+    lst = (U8*)SvPV(search,lbyte);
+    New(0, one, lbyte + 1, U8);
+    New(0, two, lbyte + 1, U8);
+    bytelist(lst,lbyte,one,two,&ol,&tl);
+
+    prefound = FALSE;
+    for (p = s, e = s + sbyte; p < e; ++cnt, prefound = curfound) {
+	if (Is_SJ2BTp(p,e)) {
+	    curfound = (strNchr(two,tl,p,2) != NULL);
+	    p += 2;
+	}
+	else {
+	    curfound = (strNchr(one,ol,p,1) != NULL);
+	    ++p;
+	}
+
+	if ((curfound != prefound) && ((!ix) == (!prefound)))
+	    ret = cnt;
+    }
+
+    if ((!ix) == (!prefound))
+	ret = cnt;
+
+    Safefree(one);
+    Safefree(two);
+    XPUSHs(sv_2mortal(newSViv(ret)));
+
+
+
+void
+trim(src, search = &PL_sv_undef, usecpl = &PL_sv_undef)
+    SV *src
+    SV *search
+    SV *usecpl
+  PROTOTYPE: $;$$
+  ALIAS:
+    ltrim = 1
+    rtrim = 2
+  PREINIT:
+    U8 *s, *p, *e, *lst, *one, *two;
+    STRLEN sbyte, cbyte, lbyte, ol = 0, tl = 0;
+    U8 *ini, *fin;
+    bool c, firstout, prefound, curfound;
+  PPCODE:
+    s = (U8*)SvPV(src,sbyte);
+    c = SvTRUE(usecpl);
+
+    if (search && search != &PL_sv_undef) {
+	lst = (U8*)SvPV(search,lbyte);
+    } else {
+	lst = "\r\n\t\f\x20\x81\x40";
+	lbyte = 7;
+    }
+
+    New(0, one, lbyte + 1, U8);
+    New(0, two, lbyte + 1, U8);
+    bytelist(lst,lbyte,one,two,&ol,&tl);
+
+    e = s + sbyte;
+    ini = s;
+    fin = e;
+    firstout = prefound = FALSE;
+    for (p = s; p < e; p += cbyte, prefound = curfound) {
+	if (Is_SJ2BTp(p,e)) {
+	    curfound = ((!c) == (strNchr(two,tl,p,2) != NULL));
+	    cbyte = 2;
+	}
+	else {
+	    curfound = ((!c) == (strNchr(one,ol,p,1) != NULL));
+	    cbyte = 1;
+	}
+
+	if (ix != 2 && !firstout && !curfound) {
+	    firstout = TRUE;
+	    ini = p;
+	    if (ix == 1)
+		break;
+	}
+
+	if (ix != 1 && !prefound && curfound) {
+	    fin = p;
+	}
+    }
+
+    if (ix != 2 && !firstout)
+	ini = e;
+
+    if (ix != 1 && !prefound)
+	fin = e;
+
+    Safefree(one);
+    Safefree(two);
+    XPUSHs(sv_2mortal(newSVpvn(ini, fin > ini ? fin-ini : 0)));
+
+
+
+void
 index(src, sub, pos=-0)
     SV *src
     SV *sub

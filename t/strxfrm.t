@@ -1,7 +1,3 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
-
-######################### We start with some black magic to print on failure.
 
 BEGIN { $| = 1; print "1..7\n"; }
 END {print "not ok 1\n" unless $loaded;}
@@ -20,7 +16,7 @@ sub str_LE  { strxfrm($_[0]) le  strxfrm($_[1]) }
 sub str_GT  { strxfrm($_[0]) gt  strxfrm($_[1]) }
 sub str_GE  { strxfrm($_[0]) ge  strxfrm($_[1]) }
 
-######################### End of black magic.
+#####
 
 print 1
   && str_cmp('',   'A')  < 0
@@ -103,3 +99,5 @@ print 1
   && str_cmp("‚ \0×ƒ‰", "‚ \0ƒ‰×") == -1
   ? "ok" : "not ok", " 7\n";
 
+1;
+__END__

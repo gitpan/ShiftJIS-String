@@ -1,16 +1,12 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
 
-######################### We start with some black magic to print on failure.
-
-BEGIN { $| = 1; print "1..18\n"; }
+BEGIN { $| = 1; print "1..24\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use ShiftJIS::String qw(mkrange trclosure strsplit);
 $^W = 1;
 $loaded = 1;
 print "ok 1\n";
 
-######################### End of black magic.
+#####
 
 sub listtostr {
   my @a = @_;
@@ -30,7 +26,7 @@ sub listtostr {
 
 # splitchar in scalar context
   $NG = 0;
-  for $n (-1..20){
+  for ($n = -1; $n <= 20; $n++) {
     my $core = @{[ split(//, $str, $n) ]};
     my $sjis = strsplit('',$zen,$n);
     ++$NG unless $core == $sjis;
@@ -39,7 +35,7 @@ sub listtostr {
 
 # splitchar in list context
   $NG = 0;
-  for $n (-1..20){
+  for ($n = -1; $n <= 20; $n++) {
     my $core = listtostr( split //, $str, $n );
     my $sjis = listtostr( strsplit('',$zen,$n) );
     ++$NG unless $core eq &$printZ2H($sjis);
@@ -48,7 +44,7 @@ sub listtostr {
 
 # splitspace in scalar context
   $NG = 0;
-  for $n (-1..5){
+  for ($n = -1; $n <= 5; $n++) {
     my $core = @{[ split ' ', $str, $n ]};
     my $sjis = strsplit(undef,$zen,$n);
     ++$NG unless $core eq &$printZ2H($sjis);
@@ -57,7 +53,7 @@ sub listtostr {
 
 # splitspace in list context
   $NG = 0;
-  for $n (-1..5){
+  for ($n = -1; $n <= 5; $n++) {
     my $core = listtostr( split(' ', $str, $n) );
     my $sjis = listtostr( strsplit(undef,$zen,$n) );
     ++$NG unless $core eq &$printZ2H($sjis);
@@ -66,7 +62,7 @@ sub listtostr {
 
 # split / / in scalar context
   $NG = 0;
-  for $n (-1..5){
+  for ($n = -1; $n <= 5; $n++) {
     my $core = @{ [ split(/ /, $str, $n) ] };
     my $sjis = strsplit(' ',$str,$n);
     ++$NG unless $core == $sjis;
@@ -75,7 +71,7 @@ sub listtostr {
 
 # split / / in list context
   $NG = 0;
-  for $n (-1..5){
+  for ($n = -1; $n <= 5; $n++) {
     my $core = listtostr( split(/ /, $str, $n) );
     my $sjis = listtostr( strsplit(' ',$str,$n) );
     ++$NG unless $core eq &$printZ2H($sjis);
@@ -84,7 +80,7 @@ sub listtostr {
 
 # splitchar '' in scalar context
   $NG = 0;
-  for $n (-1..20){
+  for ($n = -1; $n <= 20; $n++) {
     my $core = @{[ split(//, '', $n) ]};
     my $sjis = strsplit('','',$n);
     ++$NG unless $core == $sjis;
@@ -93,7 +89,7 @@ sub listtostr {
 
 # splitchar '' in list context
   $NG = 0;
-  for $n (-1..20){
+  for ($n = -1; $n <= 20; $n++) {
     my $core = listtostr split //, '', $n;
     my $sjis = listtostr strsplit '','',$n;
     ++$NG unless $core eq $sjis;
@@ -102,7 +98,7 @@ sub listtostr {
 
 # splitspace '' in scalar context
   $NG = 0;
-  for $n (-1..20){
+  for ($n = -1; $n <= 20; $n++) {
     my $core = @{[ split(' ', '', $n) ]};
     my $sjis = strsplit(undef,'',$n);
     ++$NG unless $core == $sjis;
@@ -111,7 +107,7 @@ sub listtostr {
 
 # splitspace '' in list context
   $NG = 0;
-  for $n (-1..20){
+  for ($n = -1; $n <= 20; $n++) {
     my $core = listtostr split ' ', '', $n;
     my $sjis = listtostr strsplit undef,'',$n;
     ++$NG unless $core eq $sjis;
@@ -120,7 +116,7 @@ sub listtostr {
 
 # split / /, '' in scalar context
   $NG = 0;
-  for $n (-1..5){
+  for ($n = -1; $n <= 5; $n++) {
     my $core = @{ [ split(/ /, '', $n) ] };
     my $sjis = strsplit(' ', '', $n);
     ++$NG unless $core == $sjis;
@@ -129,7 +125,7 @@ sub listtostr {
 
 # split / /, '' in list context
   $NG = 0;
-  for $n (-1..5){
+  for ($n = -1; $n <= 5; $n++) {
     my $core = listtostr split / /, '', $n;
     my $sjis = listtostr strsplit ' ', '', $n;
     ++$NG unless $core eq $sjis;
@@ -142,7 +138,7 @@ sub listtostr {
 
 # splitspace in scalar context
   $NG = 0;
-  for $n (-1..5){
+  for ($n = -1; $n <= 5; $n++) {
     my $core = @{[ split ' ', $str, $n ]};
     my $sjis = strsplit(undef,$zen,$n);
     ++$NG unless $core eq &$printZ2H($sjis);
@@ -151,7 +147,7 @@ sub listtostr {
 
 # splitspace in list context
   $NG = 0;
-  for $n (-1..5){
+  for ($n = -1; $n <= 5; $n++) {
     my $core = listtostr( split(' ', $str, $n) );
     my $sjis = listtostr( strsplit(undef,$zen,$n) );
     ++$NG unless $core eq &$printZ2H($sjis);
@@ -228,3 +224,44 @@ print 1
   && 'Perl:épék:Camel' eq join(":", strsplit(undef, 'Perl@épék@Camel@'))
   && 'Perl:épék:Camel:' eq join(":", strsplit(undef, 'Perl@épék@Camel@',-2))
   ? "ok" : "not ok", " 18\n";
+
+print 1
+    && "\x00:\x42\x00" eq
+	join(':', strsplit("\x30\x00", "\x00\x30\x00\x42\x00"))
+    && "\x00\x30\x00\x42\x00" eq
+	join(':', strsplit("\x30\x01", "\x00\x30\x00\x42\x00"))
+    && ":\x00\x42\x00" eq
+	join(':', strsplit("\x00\x30", "\x00\x30\x00\x42\x00"))
+    && "\x00\x30\x00\x42\x00" eq
+	join(':', strsplit("\x01\x30", "\x00\x30\x00\x42\x00"))
+    ? "ok" : "not ok", " 19\n";
+
+print "\x00\x30\x00\x42\x00" eq
+	join(':', strsplit("\x30\x00\x00", "\x00\x30\x00\x42\x00\x30\x00\x00"))
+   && "\x00\x30\x00\x42\x00" eq
+	join(':', strsplit("\x30\x00\x00", "\x00\x30\x00\x42\x00\x30\x00\x00"))
+    ? "ok" : "not ok", " 20\n";
+
+if ($] < 5.005) {
+  foreach(21..24) { print "ok $_\n"; }
+}
+else {
+  $str = "\x00\x00\x30\x00\x00\x42\x00\x00\x30\x00\x42\x00";
+  print join(':', strsplit("\x00\x30\x00\x42\x00", $str)) eq
+	"\x00\x00\x30\x00\x00\x42\x00"
+    ? "ok" : "not ok", " 21\n";
+
+  print join(':', strsplit("\x00\x30\x00\x00\x00", $str)) eq $str
+    ? "ok" : "not ok", " 22\n";
+
+  print join(':', strsplit("\x00\x00\x30\x00", $str)) eq
+	":\x00\x42:\x42\x00"
+    ? "ok" : "not ok", " 23\n";
+
+  print join(':', strsplit("\x00\x30\x00", $str)) eq
+	"\x00:\x00\x42\x00:\x42\x00"
+    ? "ok" : "not ok", " 24\n";
+}
+
+1;
+__END__

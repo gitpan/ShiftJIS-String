@@ -1,7 +1,3 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
-
-######################### We start with some black magic to print on failure.
 
 BEGIN { $| = 1; print "1..11\n"; }
 END {print "not ok 1\n" unless $loaded;}
@@ -11,10 +7,10 @@ $^W = 1;
 $loaded = 1;
 print "ok 1\n";
 
-######################### End of black magic.
+#####
 
-my $L82 = '(?:\x82[\x40-\xfc])';
-my $L83 = '(?:\x83[\x40-\xfc])';
+$L82 = '(?:\x82[\x40-\xfc])';
+$L83 = '(?:\x83[\x40-\xfc])';
 
 "‚`‚a‚bƒAƒCƒEƒGƒI" =~ /($L82+)($L83+)/;
 
@@ -41,7 +37,7 @@ print "‚`‚a‚b" eq strtr($1,'ƒA-ƒ“','‚ -‚ñ')
 print "‚`‚a‚b" eq $1 && "ƒAƒCƒEƒGƒI" eq $2
   ? "ok" : "not ok", " 8\n";
 
-my $str = "‚`‚a‚bƒAƒCƒEƒGƒI“““‚w‚x‚yƒnƒqƒtƒwƒz";
+$str = "‚`‚a‚bƒAƒCƒEƒGƒI“““‚w‚x‚yƒnƒqƒtƒwƒz";
 
 $str =~ s/($L82+)($L83+)/
     strtr($1,'‚`-‚y','A-Z'). strtr($2,'ƒA-ƒ“','‚ -‚ñ')

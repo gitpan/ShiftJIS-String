@@ -1,7 +1,7 @@
 
-=head1 –¼Ì
+=head1 NAME (–¼Ì)
 
-ShiftJIS::String - Shift_JIS ŽuŒü‚Ì•¶Žš—ñ‘€ìŠÖ”
+ShiftJIS::String - Shift_JIS •¶Žš—ñ‘€ìŠÖ”
 
 =head1 ŠT—v
 
@@ -32,7 +32,8 @@ ShiftJIS::String - Shift_JIS ŽuŒü‚Ì•¶Žš—ñ‘€ìŠÖ”
 =item C<issjis(LIST)>
 
 ˆø”ƒŠƒXƒg‚Ì‚·‚×‚Ä‚Ì•¶Žš—ñ‚ª Shift_JIS ‚Æ‚µ‚Ä³‚µ‚¢‚©”Û‚©‚Ì^‹U’l‚ð•Ô‚µ‚Ü‚·B
-i‚Ç‚ê‚©ˆê‚Â‚Å‚à•s³‚Å‚ ‚é‚Æ‹U‚ð•Ô‚µ‚Ü‚·Bj
+
+C<LIST> ‚ªˆê‚ÂˆÈã‚Ì•s³‚È•¶Žš—ñ‚ðŠÜ‚ñ‚Å‚¢‚éê‡A‹U‚ð•Ô‚µ‚Ü‚·B
 
 =back
 
@@ -69,7 +70,7 @@ C<SUBSTR> ‚ÌÅ‰‚ÌoŒ»ˆÊ’u‚ð•Ô‚µ‚Ü‚·B
 
 C<POSITION> ‚ðÈ—ª‚µ‚½ê‡‚ÍA•¶Žš—ñ‚Ìæ“ª‚©‚ç’T‚µ‚Ü‚·B
 
-•”•ª•¶Žš—ñ‚ªŒ©‚Â‚©‚ç‚È‚¢Žž‚Í -1 ‚ð•Ô‚µ‚Ü‚·B
+•”•ª•¶Žš—ñ‚ªŒ©‚Â‚©‚ç‚È‚¢Žž‚Í C<-1> ‚ð•Ô‚µ‚Ü‚·B
 
 =item C<rindex(STRING, SUBSTR)>
 
@@ -78,29 +79,118 @@ C<POSITION> ‚ðÈ—ª‚µ‚½ê‡‚ÍA•¶Žš—ñ‚Ìæ“ª‚©‚ç’T‚µ‚Ü‚·B
 C<STRING> ’†AC<SUBSTR> ‚ÌÅŒã‚ÌoŒ»ˆÊ’u‚ð•Ô‚µ‚Ü‚·B
 C<POSITION> ‚ðŒˆ‚ß‚½Žž‚Í‚»‚ÌˆÊ’u‚Ü‚½‚Í‚»‚êˆÈ‘O‚ÅÅŒã‚ÌoŒ»ˆÊ’u‚ð•Ô‚µ‚Ü‚·B
 
-•”•ª•¶Žš—ñ‚ªŒ©‚Â‚©‚ç‚È‚¢Žž‚Í -1 ‚ð•Ô‚µ‚Ü‚·B
+•”•ª•¶Žš—ñ‚ªŒ©‚Â‚©‚ç‚È‚¢Žž‚Í C<-1> ‚ð•Ô‚µ‚Ü‚·B
 
 =item C<strspn(STRING, SEARCHLIST)>
 
 C<SEARCHLIST> ‚ÉŠÜ‚Ü‚ê‚È‚¢”CˆÓ‚Ì•¶Žš‚ÌÅ‰‚ÌoŒ»ˆÊ’u‚ð•Ô‚µ‚Ü‚·B
 
+C<STRING> ‚ª C<SEARCHLIST> ’†‚Ì•¶Žš‚Ì‚Ý‚©‚ç‚È‚éê‡‚ÍA
+•Ô‚è’l‚Í C<STRING> ‚Ì’·‚³‚É“™‚µ‚­‚È‚è‚Ü‚·B
+
+C<SEARCHLIST> ‚É’¼Ú•¶Žš”ÍˆÍ‚ðŽg‚¤‚±‚Æ‚Í‚Å‚«‚Ü‚¹‚ñ‚ªA
+ŠÖ” C<mkrange()> ‚ð—˜—p‚Å‚«‚é‚Å‚µ‚å‚¤B
+
   strspn("+0.12345*12", "+-.0123456789");
-  # 8 ‚ð•Ô‚·B
-
-C<STRING> ‚ª C<SEARCHLIST> ’†‚Ì‚Ç‚Ì•¶Žš‚àŠÜ‚Ü‚È‚¢ê‡‚ÍA0 ‚ð•Ô‚µ‚Ü‚·B
-
-C<STRING> ‚ª C<SEARCHLIST> ’†‚Ì•¶Žš‚©‚ç‚È‚éê‡‚ÍA
-•Ô‚è’l‚Í•¶Žš—ñ‚Ì’·‚³‚É“™‚µ‚­‚È‚è‚Ü‚·B
+  # 8 ‚ð•Ô‚·i'*' ‚ÌˆÊ’uj
 
 =item C<strcspn(STRING, SEARCHLIST)>
 
 C<SEARCHLIST> ‚ÉŠÜ‚Ü‚ê‚é”CˆÓ‚Ì•¶Žš‚ÌÅ‰‚ÌoŒ»ˆÊ’u‚ð•Ô‚µ‚Ü‚·B
 
-  strcspn("Perl‚Í–Ê”’‚¢B", "ÔÂ‰©”’•");
-  # 6 ‚ð•Ô‚·B
-
 C<STRING> ‚ª C<SEARCHLIST> ’†‚Ì‚Ç‚Ì•¶Žš‚àŠÜ‚Ü‚È‚¢ê‡‚ÍA
-•Ô‚è’l‚Í•¶Žš—ñ‚Ì’·‚³‚É“™‚µ‚­‚È‚è‚Ü‚·B
+•Ô‚è’l‚Í C<STRING> ‚Ì’·‚³‚É“™‚µ‚­‚È‚è‚Ü‚·B
+
+C<SEARCHLIST> ‚É’¼Ú•¶Žš”ÍˆÍ‚ðŽg‚¤‚±‚Æ‚Í‚Å‚«‚Ü‚¹‚ñ‚ªA
+ŠÖ” C<mkrange()> ‚ð—˜—p‚Å‚«‚é‚Å‚µ‚å‚¤B
+
+  strcspn("Perl‚Í–Ê”’‚¢B", "ÔÂ‰©”’•");
+  # 6 ‚ð•Ô‚·i'”’' ‚ÌˆÊ’uj
+
+=item C<rspan(STRING, SEARCHLIST)>
+
+C<SEARCHLIST> ‚ÉŠÜ‚Ü‚ê‚È‚¢”CˆÓ‚Ì•¶Žš‚ÌÅŒã‚ÌoŒ»ˆÊ’u‚ð’²‚×‚Ü‚·B
+
+‚»‚Ì‚æ‚¤‚È•¶Žš‚ªŒ©‚Â‚©‚Á‚½ê‡‚É‚ÍA‚»‚Ì•¶Žš‚ÌŽŸ‚ÌˆÊ’u‚ð•Ô‚µ‚Ü‚·B
+‚³‚à‚È‚¯‚ê‚ÎiC<STRING> ‚Ì‚·‚×‚Ä‚Ì•¶Žš‚ª C<SEARCHLIST> ‚ÉŠÜ‚Ü‚ê‚éê‡)A
+•¶Žš—ñ‚ÌÅ‰‚ÌˆÊ’u‚Æ‚µ‚ÄAC<0> ‚ð•Ô‚µ‚Ü‚·B
+
+C<SEARCHLIST> ‚É’¼Ú•¶Žš”ÍˆÍ‚ðŽg‚¤‚±‚Æ‚Í‚Å‚«‚Ü‚¹‚ñ‚ªA
+ŠÖ” C<mkrange()> ‚ð—˜—p‚Å‚«‚é‚Å‚µ‚å‚¤B
+
+  rspan('{‚O‚P‚Q‚R‚S‚T‚U‚V‚W‚X–{I', '–{I”“');
+  # 11 ‚ð•Ô‚·i'‚X' ‚ÌŽŸ‚Ì '–' ‚ÌˆÊ’uj
+
+=item C<rcspan(STRING, SEARCHLIST)>
+
+C<SEARCHLIST> ‚ÉŠÜ‚Ü‚ê‚é”CˆÓ‚Ì•¶Žš‚ÌÅŒã‚ÌoŒ»ˆÊ’u‚ð’²‚×‚Ü‚·B
+
+‚»‚Ì‚æ‚¤‚È•¶Žš‚ªŒ©‚Â‚©‚Á‚½ê‡‚É‚ÍA‚»‚Ì•¶Žš‚ÌŽŸ‚ÌˆÊ’u‚ð•Ô‚µ‚Ü‚·B
+‚³‚à‚È‚¯‚ê‚ÎiC<STRING> ‚Ì‚Ç‚Ì•¶Žš‚à C<SEARCHLIST> ‚ÉŠÜ‚Ü‚ê‚È‚¢ê‡)A
+•¶Žš—ñ‚ÌÅ‰‚ÌˆÊ’u‚Æ‚µ‚ÄAC<0> ‚ð•Ô‚µ‚Ü‚·B
+
+C<SEARCHLIST> ‚É’¼Ú•¶Žš”ÍˆÍ‚ðŽg‚¤‚±‚Æ‚Í‚Å‚«‚Ü‚¹‚ñ‚ªA
+ŠÖ” C<mkrange()> ‚ð—˜—p‚Å‚«‚é‚Å‚µ‚å‚¤B
+
+  rcspan("Perl‚Í–Ê”’‚¢B", "ÔÂ‰©”’•");
+  # 7 ‚ð•Ô‚·i'”’' ‚ÌŽŸ‚Ì '‚¢' ‚ÌˆÊ’uj
+
+  rcspan('ABC‚ ‚¢‚¤XYZ', "‚ ‚¢‚¤‚¦‚¨");
+  # 6 ‚ð•Ô‚·i'‚¤' ‚ÌŽŸ‚Ì 'X' ‚ÌˆÊ’uj
+
+=back
+
+=head2 •¶Žš—ñ‚Ì‘OŒã‚Ì—]•ª‚È•¶Žš‚Ìœ‹Ž
+
+=over 4
+
+=item C<trim(STRING)>
+
+=item C<trim(STRING, SEARCHLIST)>
+
+=item C<trim(STRING, SEARCHLIST, USE_COMPLEMENT)>
+
+C<STRING> ‚Ìæ“ª‚¨‚æ‚Ñ––”ö‚©‚çAC<SEARCHLIST> ‚ÉŠÜ‚Ü‚ê‚é•¶Žš‚ðœ‹Ž‚µ‚Ä
+‚»‚ÌŒ‹‰Ê‚ð•Ô‚µ‚Ü‚·B
+‚½‚¾‚µAC<USE_COMPLEMENT> ‚É^‚Ì’l‚ð—^‚¦‚½ê‡A‹t‚ÉA
+C<SEARCHLIST> ‚ÉB<ŠÜ‚Ü‚ê‚È‚¢>•¶Žš‚ðœ‹Ž‚µ‚Ü‚·B
+
+C<SEARCHLIST> ‚ðÈ—ª‚µ‚½ê‡i‚Ü‚½‚Í–¢’è‹`’l‚Ìê‡jA
+C<SEARCHLIST> ‚Æ‚µ‚ÄAˆÈ‰º‚Ì‹ó”’—Þ•¶Žš‚ÌƒŠƒXƒg‚ð—p‚¢‚Ü‚·B
+‚·‚È‚í‚¿AC<"\t">, C<"\n">, C<"\r">, C<"\f">, C<"\x20">i‹ó”’j,
+‚¨‚æ‚Ñ C<"\x81\x40">i˜aŽšŠÔŠujB
+
+C<SEARCHLIST> ‚É’¼Ú•¶Žš”ÍˆÍ‚ðŽg‚¤‚±‚Æ‚Í‚Å‚«‚Ü‚¹‚ñ‚ªA
+C<trim($string, mkrange("\x00-\x20"))> ‚Ì‚æ‚¤‚É
+ŠÖ” C<mkrange()> ‚ð—˜—p‚Å‚«‚é‚Å‚µ‚å‚¤B
+
+=item C<ltrim(STRING)>
+
+=item C<ltrim(STRING, SEARCHLIST)>
+
+=item C<ltrim(STRING, SEARCHLIST, USE_COMPLEMENT)>
+
+C<STRING> ‚Ìæ“ª‚©‚çAC<SEARCHLIST> ‚ÉŠÜ‚Ü‚ê‚é•¶Žš‚ðœ‹Ž‚µ‚Ä
+‚»‚ÌŒ‹‰Ê‚ð•Ô‚µ‚Ü‚·B
+‚½‚¾‚µAC<USE_COMPLEMENT> ‚É^‚Ì’l‚ð—^‚¦‚½ê‡A‹t‚ÉA
+C<SEARCHLIST> ‚ÉB<ŠÜ‚Ü‚ê‚È‚¢>•¶Žš‚ðœ‹Ž‚µ‚Ü‚·B
+
+C<SEARCHLIST> ‚É’¼Ú•¶Žš”ÍˆÍ‚ðŽg‚¤‚±‚Æ‚Í‚Å‚«‚Ü‚¹‚ñ‚ªA
+ŠÖ” C<mkrange()> ‚ð—˜—p‚Å‚«‚é‚Å‚µ‚å‚¤B
+
+=item C<rtrim(STRING)>
+
+=item C<rtrim(STRING, SEARCHLIST)>
+
+=item C<rtrim(STRING, SEARCHLIST, USE_COMPLEMENT)>
+
+C<STRING> ‚Ì––”ö‚©‚çAC<SEARCHLIST> ‚ÉŠÜ‚Ü‚ê‚é•¶Žš‚ðœ‹Ž‚µ‚Ä
+‚»‚ÌŒ‹‰Ê‚ð•Ô‚µ‚Ü‚·B
+‚½‚¾‚µAC<USE_COMPLEMENT> ‚É^‚Ì’l‚ð—^‚¦‚½ê‡A‹t‚ÉA
+C<SEARCHLIST> ‚ÉB<ŠÜ‚Ü‚ê‚È‚¢>•¶Žš‚ðœ‹Ž‚µ‚Ü‚·B
+
+C<SEARCHLIST> ‚É’¼Ú•¶Žš”ÍˆÍ‚ðŽg‚¤‚±‚Æ‚Í‚Å‚«‚Ü‚¹‚ñ‚ªA
+ŠÖ” C<mkrange()> ‚ð—˜—p‚Å‚«‚é‚Å‚µ‚å‚¤B
 
 =back
 
@@ -130,8 +220,9 @@ C<SCALAR> ‚Ì‚»‚Ì•”•ª‚ð’uŠ·‚µ‚ÄA‚»‚Ì•”•ª‚ÌŒ³‚Ì•”•ª•¶Žš—ñ‚ð•Ô‚µ‚Ü‚·B
 
         ‚Ì‚æ‚¤‚É“­‚«‚Ü‚·B
 
-•Ô‚è’l‚Ì¶•Ó’l‚Í Shift_JIS •—‚É“­‚©‚È‚¢‚Ì‚ÅA
-‚Q“x–Ú‚Ì‘ã“ü‚Å‚ÍŠú‘Ò’Ê‚è‚ÌŒ‹‰Ê‚É‚È‚ç‚È‚¢‰Â”\«‚ª‚ ‚è‚Ü‚·B
+•Ô‚è’l‚Ì¶•Ó’l‚ÍiPerl‘g‚Ýž‚Ý‚Ì‹@”\‚É‚æ‚é•”•ª•¶Žš—ñ‚»‚Ì‚Ü‚Ü‚É
+‚È‚Á‚Ä‚¢‚Ü‚·‚©‚çAjShift_JIS‚É‘Î‰ž‚µ‚Ä‚¢‚Ü‚¹‚ñB]‚Á‚ÄA
+‚Q“x–Ú‚Ì‘ã“ü‚â•ÏX‚Å‚ÍŠú‘Ò’Ê‚è‚ÌŒ‹‰Ê‚É‚È‚ç‚È‚¢‰Â”\«‚ª‚ ‚è‚Ü‚·B
 
     $str = "0123456789";
     $lval  = &substr(\$str,3,1);
@@ -139,6 +230,15 @@ C<SCALAR> ‚Ì‚»‚Ì•”•ª‚ð’uŠ·‚µ‚ÄA‚»‚Ì•”•ª‚ÌŒ³‚Ì•”•ª•¶Žš—ñ‚ð•Ô‚µ‚Ü‚·B
     $$lval = "a";
     # $str ‚Í "012a‚¢456789" ‚Å‚Í‚È‚­‚ÄA
     # •s³‚È•¶Žš—ñ "012a\xA0‚¢456789" ‚É‚È‚è‚Ü‚·B
+
+‚æ‚­‚í‚©‚ç‚È‚¯‚ê‚ÎA‚Æ‚É‚©‚­‘ã“ü‚Ì‘O‚É¶•Ó’l‚ðŽæ“¾‚·‚é‚Ì‚ª‚æ‚¢‚Å‚µ‚å‚¤B
+
+    $str = "0123456789";
+    $lval  = &substr(\$str,3,1);
+    $$lval = "‚ ‚¢";
+    $lval  = &substr(\$str,3,1); # ‚à‚¤ˆê“x¶•Ó’l‚ðŽæ“¾‚·‚éB
+    $$lval = "a";
+    # $str is "012a‚¢456789".
 
 =back
 
@@ -183,9 +283,9 @@ C<SEPARATOR> ‚Æ‚µ‚Ä–¢’è‹`’l‚ð—p‚¢‚½ê‡‚ÍA
 
 =item C<strcmp(LEFT-STRING, RIGHT-STRING)>
 
-•Ô‚è’l‚ÍA1 (C<LEFT-STRING> ‚ª C<RIGHT-STRING> ‚æ‚è‘å‚«‚¢Žž)
-‚© 0 (C<LEFT-STRING> ‚ª C<RIGHT-STRING> ‚É“™‚µ‚¢Žž)
-‚© -1 (C<LEFT-STRING> ‚ª C<RIGHT-STRING> ‚æ‚è¬‚³‚¢Žž) ‚É‚È‚è‚Ü‚·B
+•Ô‚è’l‚ÍAC<1> (C<LEFT-STRING> ‚ª C<RIGHT-STRING> ‚æ‚è‘å‚«‚¢Žž)
+‚© C<0> (C<LEFT-STRING> ‚ª C<RIGHT-STRING> ‚É“™‚µ‚¢Žž)
+‚© C<-1> (C<LEFT-STRING> ‚ª C<RIGHT-STRING> ‚æ‚è¬‚³‚¢Žž) ‚É‚È‚è‚Ü‚·B
 
 •¶Žš‡‚Í‘å‚Ü‚©‚ÉŒ¾‚Á‚ÄAŽŸ‚ÌƒŠƒXƒg‚ÉŽ¦‚·‚æ‚¤‚É‚È‚è‚Ü‚·B
 
@@ -255,7 +355,7 @@ C<strxfrm($a) cmp strxfrm($b)> ‚Í C<strcmp($a, $b)>
 —^‚¦‚ç‚ê‚½•¶Žš”ÍˆÍ‚ð‰ðŽß‚µ‚Ä“¾‚ç‚ê‚é•¶ŽšƒŠƒXƒg
 iƒŠƒXƒgƒRƒ“ƒeƒLƒXƒgˆÈŠO‚Å‚Í•¶Žš—ñ‚É˜AŒ‹‚µ‚½‚à‚Ìj‚ð•Ô‚µ‚Ü‚·B
 
-•¶Žš”ÍˆÍ‚Í C<HYPHEN-MINUS>, C<'-'> ‚Å•\‚í‚µ‚Ü‚·B
+•¶Žš”ÍˆÍ‚Í C<'-'> (C<HYPHEN-MINUS>) ‚Å•\‚í‚µ‚Ü‚·B
 ƒGƒXƒP[ƒv‚µ‚½ C<'\-'> ‚¨‚æ‚Ñ C<'\\'> ‚Í‚»‚ê‚¼‚êA
 ƒŠƒeƒ‰ƒ‹‚Ì C<'-'> ‚¨‚æ‚Ñ  C<'\'> ‚Ì‘ã‚í‚è‚É—p‚¢‚ç‚ê‚Ü‚·B
 Å‰‚Ü‚½‚ÍÅŒã‚ÌƒnƒCƒtƒ“‚Í‚â‚Í‚èƒnƒCƒtƒ“‚»‚Ì‚à‚Ì‚Æ‚µ‚Ä‰ðŽß‚³‚ê‚Ü‚·B
@@ -343,7 +443,8 @@ B<MODIFIER>
   strtr("ðŒ‰‰ŽZŽq‚ÌŽg‚¢‚·‚¬‚ÍŒ©‹ê‚µ‚¢", '‚Ÿ-‚ñ', '”', 'cs');
     # o—Í: ”‚Ì”‚¢‚·‚¬‚Í”‚µ‚¢
 
-C<'h'> CüŽq‚ð—p‚¢‚é‚ÆA‘æˆêˆø”‚ª•¶Žš—ñ‚©ƒŠƒtƒ@ƒŒƒ“ƒX‚©‚ÉS‚ç‚¸A•¶Žš‚ÌoŒ»•p“x‚ðA•¶Žš‚ªƒL[A‰ñ”‚ª’l‚Æ‚È‚éƒnƒbƒVƒ…‚Å•Ô‚µ‚Ü‚·B
+C<'h'> CüŽq‚ð—p‚¢‚é‚ÆA‘æˆêˆø”‚ª•¶Žš—ñ‚©ƒŠƒtƒ@ƒŒƒ“ƒX‚©‚ÉS‚ç‚¸A
+•¶Žš‚ÌoŒ»•p“x‚ðA•¶Žš‚ªƒL[A‰ñ”‚ª’l‚Æ‚È‚éƒnƒbƒVƒ…‚Å•Ô‚µ‚Ü‚·B
 ƒXƒJƒ‰[ƒRƒ“ƒeƒLƒXƒg‚Å‚ÍƒnƒbƒVƒ…ƒŠƒtƒ@ƒŒƒ“ƒX‚Å•Ô‚µ‚Ü‚·B
 “¯Žž‚É•ÏXŒã‚Ì•¶Žš—ñ‚ð“¾‚½‚¯‚ê‚ÎA‘æˆêˆø”‚Æ‚µ‚ÄƒŠƒtƒ@ƒŒƒ“ƒX‚ð“n‚µA
 ‚»‚ÌƒŠƒtƒ@ƒŒƒ“ƒX‚Ì“à—e‚ð•ÏX‚³‚¹‚é‚æ‚¤‚É‚µ‚Ä‚­‚¾‚³‚¢B
@@ -354,7 +455,7 @@ C<'h'> CüŽq‚ð—p‚¢‚é‚ÆA‘æˆêˆø”‚ª•¶Žš—ñ‚©ƒŠƒtƒ@ƒŒƒ“ƒX‚©‚ÉS‚ç‚¸A•¶Žš‚ÌoŒ»•p“
     # ‚½‚¾‚µAƒnƒbƒVƒ…‚ÌƒL[‚Ì‡˜‚ÍA‚±‚¤‚È‚é‚Æ‚ÍŒÀ‚è‚Ü‚¹‚ñB
 
 C<'R'> CüŽq‚ð—p‚¢‚é‚ÆAC<'-'> ‚Íƒƒ^•¶Žš‚Å‚Í‚È‚­A
-C<tr'''> ’†‚Ì‚æ‚¤‚ÉAƒnƒCƒtƒ“‚»‚Ì‚à‚Ì‚Æ‚Ý‚È‚µ‚Ü‚·B
+CORE:: ‚Ì C<tr'''> ’†‚Ì‚æ‚¤‚ÉAƒnƒCƒtƒ“‚»‚Ì‚à‚Ì‚Æ‚Ý‚È‚µ‚Ü‚·B
 
   strtr("90 - 32 = 58", "0-9", "A-J");
     # o—Í: "JA - DC = FI"
@@ -479,7 +580,9 @@ C<strtr()> ‚Ì‚»‚ê‚Æ“¯—l‚Å‚·B
 
 =over 4
 
-=item C<toupper(STRING or SCALAR REF)>
+=item C<toupper(STRING)>
+
+=item C<toupper(SCALAR REF)>
 
 C<STRING> ‚ð‘å•¶Žš‰»‚µ‚½•¶Žš—ñ‚ð•Ô‚µ‚Ü‚·B
 ”¼Špƒ‰ƒeƒ“•¶Žš C<a-z> ‚©‚ç C<A-Z> ‚Ì•ÏŠ·‚Ì‚Ý‚ðs‚¢‚Ü‚·B
@@ -488,7 +591,9 @@ C<STRING> ‚ð‘å•¶Žš‰»‚µ‚½•¶Žš—ñ‚ð•Ô‚µ‚Ü‚·B
 ƒŠƒtƒ@ƒŒƒ“ƒX‚³‚ê‚½•¶Žš—ñ‚ª•ÏŠ·‚³‚ê‚ÄA
 •ÏŠ·‚³‚ê‚½•¶Žš‚Ì”‚ª•Ô‚³‚ê‚Ü‚·B
 
-=item C<tolower(STRING or SCALAR REF)>
+=item C<tolower(STRING)>
+
+=item C<tolower(SCALAR REF)>
 
 C<STRING> ‚ð¬•¶Žš‰»‚µ‚½•¶Žš—ñ‚ð•Ô‚µ‚Ü‚·B
 ”¼Špƒ‰ƒeƒ“•¶Žš C<A-Z> ‚©‚ç C<a-z> ‚Ì•ÏŠ·‚Ì‚Ý‚ðs‚¢‚Ü‚·B
@@ -509,40 +614,58 @@ C<STRING> ‚ð¬•¶Žš‰»‚µ‚½•¶Žš—ñ‚ð•Ô‚µ‚Ü‚·B
 
 B<’ˆÓ:> C<'ƒK'>, C<'ƒp'> ‚Ì‚æ‚¤‚È‘÷‰¹i‚Ü‚½‚Í”¼‘÷‰¹j‚Ì•Ð‰¼–¼
 i‚Ü‚½‚Í•½‰¼–¼j‚ÆAC<'¶Þ'>, C<'Êß'> ‚Ì‚æ‚¤‚È‘÷“_•t‚«
-i‚Ü‚½‚Í”¼‘÷“_•t‚«j‚Ì”¼Šp•Ð‰¼–¼‚Æ‚ÌŠÔ‚Ì•ÏŠ·‚Í 1 ‚Æ”‚¦‚Ü‚·B
-“¯—l‚ÉA‘SŠp•½‰¼–¼ C<'‚¤J'> ‚Æ‘SŠp•Ð‰¼–¼ C<'ƒ”'> ‚ÌŠÔ‚Ì
-•ÏŠ·‚à 1 ‚Æ”‚¦‚Ü‚·B
+i‚Ü‚½‚Í”¼‘÷“_•t‚«j‚Ì”¼Šp•Ð‰¼–¼‚Æ‚ÌŠÔ‚Ì•ÏŠ·‚Í C<1> ‚Æ”‚¦‚Ü‚·B
+“¯—l‚ÉA•½‰¼–¼ C<'‚¤J'> ‚Æ•Ð‰¼–¼ C<'ƒ”'> ‚ÌŠÔ‚Ì
+•ÏŠ·‚à C<1> ‚Æ”‚¦‚Ü‚·B
 
 =over 4
 
-=item C<kanaH2Z(STRING or SCALAR REF)>
+=item C<kanaH2Z(STRING)>
 
-=item C<kataH2Z(STRING or SCALAR REF)>
+=item C<kanaH2Z(SCALAR REF)>
 
-”¼ŠpƒJƒ^ƒJƒi‚ð‘SŠpƒJƒ^ƒJƒi‚É•ÏŠ·‚µ‚Ü‚·B
+u”¼Šp¶À¶Åv‚ðuƒJƒ^ƒJƒiv‚É•ÏŠ·‚µ‚Ü‚·B
+
+=item C<kataH2Z(STRING)>
+
+=item C<kataH2Z(SCALAR REF)>
+
+u”¼Šp¶À¶Åv‚ðuƒJƒ^ƒJƒiv‚É•ÏŠ·‚µ‚Ü‚·B
 
 B<’F> C<kataH2Z> ‚Í C<kanaH2Z> ‚Ì•Ê–¼‚Å‚ ‚èA‹@”\‚É•Ï‚í‚è‚Í‚ ‚è‚Ü‚¹‚ñB
 
-=item C<kataZ2H(STRING or SCALAR REF)>
+=item C<kataZ2H(STRING)>
 
-‘SŠpƒJƒ^ƒJƒi‚ð”¼ŠpƒJƒ^ƒJƒi‚É•ÏŠ·‚µ‚Ü‚·B
+=item C<kataZ2H(SCALAR REF)>
 
-=item C<kanaZ2H(STRING or SCALAR REF)>
+uƒJƒ^ƒJƒiv‚ðu”¼Šp¶À¶Åv‚É•ÏŠ·‚µ‚Ü‚·B
 
-‘SŠp‚Ð‚ç‚ª‚È‚ÆƒJƒ^ƒJƒi‚ð”¼ŠpƒJƒ^ƒJƒi‚É•ÏŠ·‚µ‚Ü‚·B
+=item C<kanaZ2H(STRING)>
 
-=item C<hiXka(STRING or SCALAR REF)>
+=item C<kanaZ2H(SCALAR REF)>
 
-‘SŠp‚Ð‚ç‚ª‚È‚ð‘SŠpƒJƒ^ƒJƒi‚ÉA‘SŠpƒJƒ^ƒJƒi‚ð‘SŠp‚Ð‚ç‚ª‚È‚É
-ˆê“x‚É•ÏŠ·‚µ‚Ü‚·B
+u‚Ð‚ç‚ª‚Èv‚¨‚æ‚ÑuƒJƒ^ƒJƒiv‚ð‚»‚ê‚¼‚êu”¼Šp¶À¶Åv‚É•ÏŠ·‚µ‚Ü‚·B
 
-=item C<hi2ka(STRING or SCALAR REF)>
+=item C<hiXka(STRING)>
 
-‘SŠp‚Ð‚ç‚ª‚È‚ð‘SŠpƒJƒ^ƒJƒi‚É•ÏŠ·‚µ‚Ü‚·B
+=item C<hiXka(SCALAR REF)>
 
-=item C<ka2hi(STRING or SCALAR REF)>
+u‚Ð‚ç‚ª‚Èv‚ðuƒJƒ^ƒJƒiv‚ÉAuƒJƒ^ƒJƒiv‚ðu‚Ð‚ç‚ª‚Èv‚É
+ˆê“x‚É•ÏŠ·‚µ‚Ü‚·Bu”¼Šp¶À¶Åv‚Í•ÏŠ·‚µ‚Ü‚¹‚ñB
 
-‘SŠpƒJƒ^ƒJƒi‚ð‘SŠp‚Ð‚ç‚ª‚È‚É•ÏŠ·‚µ‚Ü‚·B
+=item C<hi2ka(STRING)>
+
+=item C<hi2ka(SCALAR REF)>
+
+u‚Ð‚ç‚ª‚Èv‚ðuƒJƒ^ƒJƒiv‚É•ÏŠ·‚µ‚Ü‚·B
+u”¼Šp¶À¶Åv‚Í•ÏŠ·‚µ‚Ü‚¹‚ñB
+
+=item C<ka2hi(STRING)>
+
+=item C<ka2hi(SCALAR REF)>
+
+uƒJƒ^ƒJƒiv‚ðu‚Ð‚ç‚ª‚Èv‚É•ÏŠ·‚µ‚Ü‚·B
+u”¼Šp¶À¶Åv‚Í•ÏŠ·‚µ‚Ü‚¹‚ñB
 
 =back
 
@@ -556,13 +679,17 @@ B<’F> C<kataH2Z> ‚Í C<kanaH2Z> ‚Ì•Ê–¼‚Å‚ ‚èA‹@”\‚É•Ï‚í‚è‚Í‚ ‚è‚Ü‚¹‚ñB
 
 =over 4
 
-=item C<spaceH2Z(STRING or SCALAR REF)>
+=item C<spaceH2Z(STRING)>
 
-•¶Žš—ñ’†‚ÌƒXƒy[ƒX‚ð˜aŽšŠÔŠu‚É•ÏŠ·‚µ‚Ä•Ô‚µ‚Ü‚·B
+=item C<spaceH2Z(SCALAR REF)>
 
-=item C<spaceZ2H(STRING or SCALAR REF)>
+•¶Žš—ñ’†‚Ì C<"\x20">iƒXƒy[ƒXj‚ð C<"\x81\x40">i˜aŽšŠÔŠuj‚É•ÏŠ·‚µ‚Ü‚·B
 
-•¶Žš—ñ’†‚Ì˜aŽšŠÔŠu‚ðƒXƒy[ƒX‚É•ÏŠ·‚µ‚Ä•Ô‚µ‚Ü‚·B
+=item C<spaceZ2H(STRING)>
+
+=item C<spaceZ2H(SCALAR REF)>
+
+•¶Žš—ñ’†‚Ì C<"\x81\x40">i˜aŽšŠÔŠuj‚ð C<"\x20">iƒXƒy[ƒXj‚É•ÏŠ·‚µ‚Ü‚·B
 
 =back
 
@@ -617,7 +744,7 @@ Tomoyuki SADAHIRO i’åœA ’msj
 
   http://homepage1.nifty.com/nomenclator/perl/
 
-  Copyright(C) 2001-2002, SADAHIRO Tomoyuki. Japan. All rights reserved.
+  Copyright(C) 2001-2003, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
   This module is free software; you can redistribute it
   and/or modify it under the same terms as Perl itself.

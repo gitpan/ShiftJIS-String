@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '1.00';
+$VERSION = '1.01';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -13,6 +13,8 @@ require Exporter;
 %EXPORT_TAGS = (
     issjis => [qw/issjis/],
     string => [qw/length index rindex strspn strcspn strrev substr strsplit/],
+    'span' => [qw/strspn strcspn rspan rcspan/],
+    'trim' => [qw/trim ltrim rtrim/],
     'cmp'  => [qw/strcmp strEQ strNE strLT strLE strGT strGE strxfrm/],
     ctype  => [qw/toupper tolower/],
     'tr'   => [qw/mkrange strtr trclosure/],
@@ -28,6 +30,7 @@ $EXPORT_TAGS{core} = [ map @$_, @EXPORT_TAGS{qw/issjis string cmp ctype tr/} ];
 @EXPORT = ();
 
 my $Char = '(?:[\x81-\x9F\xE0-\xFC][\x00-\xFF]|[\x00-\xFF])';
+my $White = "\t\n\r\f\x20\x81\x40";
 
 ##
 ## issjis(LIST)
@@ -70,11 +73,12 @@ sub index($$;$) {
 	return $pos <= 0 ? 0 : $len <= $pos ? $len : $pos;
     }
     return -1 if $len < $pos;
-    my $pat = quotemeta($sub);
-    $str =~ s/^$Char//o ? $cnt++ : croak
+
+    my $sublen = CORE::length($sub);
+    $str =~ s/^$Char//o ? $cnt++ : croak "ShiftJIS::index"
 	while CORE::length($str) && $cnt < $pos;
-    $str =~ s/^$Char//o ? $cnt++ : croak
-	while CORE::length($str) && $str !~ /^$pat/;
+    $str =~ s/^$Char//o ? $cnt++ : croak "ShiftJIS::index"
+	while CORE::length($str) && CORE::substr($str,0,$sublen) ne $sub;
     return CORE::length($str) ? $cnt : -1;
 }
 
@@ -90,10 +94,11 @@ sub rindex($$;$) {
 	return $pos <= 0 ? 0 : $len <= $pos ? $len : $pos;
     }
     return -1 if $pos < 0;
-    my $pat = quotemeta($sub);
+
+    my $sublen = CORE::length($sub);
     my $ret = -1;
     while ($cnt <= $pos && CORE::length($str)) {
-	$ret = $cnt if $str =~ /^$pat/;
+	$ret = $cnt if CORE::substr($str,0,$sublen) eq $sub;
 	$str =~ s/^$Char//o ? $cnt++ : croak;
     }
     return $ret;
@@ -106,7 +111,7 @@ sub strspn($$) {
     my($str, $lst) = @_;
     my $ret = 0;
     my(%lst);
-    @lst{ $lst=~ /$Char/go } = ();
+    @lst{ $lst =~ /$Char/go } = ();
     while ($str =~ /($Char)/go) {
 	last if ! exists $lst{$1};
 	$ret++;
@@ -128,6 +133,84 @@ sub strcspn($$) {
     }
     return $ret;
 }
+
+##
+## rspan(STRING, SEARCHLIST)
+##
+sub rspan($$) {
+    my($str, $lst) = @_;
+    my $ret = 0;
+    my $cnt = 0;
+    my($found, %lst);
+    @lst{ $lst =~ /$Char/go } = ();
+    while ($str =~ /($Char)/go) {
+	$ret = $cnt if exists $lst{$1} && !$found;
+	$found = exists $lst{$1};
+	$cnt++;
+    }
+    return $found ? $ret : $cnt;
+}
+
+##
+## rcspan(STRING, SEARCHLIST)
+##
+sub rcspan($$) {
+    my($str, $lst) = @_;
+    my $ret = 0;
+    my $cnt = 0;
+    my($found, %lst);
+    @lst{ $lst =~ /$Char/go } = ();
+    while ($str =~ /($Char)/go) {
+	$ret = $cnt if !exists $lst{$1} && $found;
+	$found = exists $lst{$1};
+	$cnt++;
+    }
+    return !$found ? $ret : $cnt;
+}
+
+##
+## ltrim(STRING; SEARCHLIST; USE_COMPLEMENT)
+##
+sub ltrim($;$$) {
+    my($str, $lst, $c) = @_;
+    $lst = $White if ! defined $lst;
+    my $pos = 0;
+    my(%lst);
+    @lst{ $lst =~ /$Char/go } = ();
+    while ($str =~ /($Char)/go) {
+	last if $c ? exists $lst{$1} : ! exists $lst{$1};
+	$pos += CORE::length($1);
+    }
+    return CORE::substr($str,$pos);
+}
+
+##
+## rtrim(STRING; SEARCHLIST; USE_COMPLEMENT)
+##
+sub rtrim($;$$) {
+    my($str, $lst, $c) = @_;
+    $lst = $White if ! defined $lst;
+    my $ret = 0;
+    my $pos = 0;
+    my($prefound, $curfound, %lst);
+    @lst{ $lst=~ /$Char/go } = ();
+    while ($str =~ /($Char)/go) {
+	$curfound = $c ? ! exists $lst{$1} : exists $lst{$1};
+	$ret = $pos if $curfound && !$prefound;
+	$prefound = $curfound;
+	$pos += CORE::length($1);
+    }
+    return CORE::substr($str, 0, $prefound ? $ret : $pos);
+}
+
+##
+## trim(STRING; SEARCHLIST; USE_COMPLEMENT)
+##
+sub trim($;$$) {
+    my($str, $lst, $c) = @_;
+    rtrim(ltrim($str, $lst, $c), $lst, $c);
+}
+
 
 ##
 ## substr(STRING or SCALAR REF, OFFSET; LENGTH)

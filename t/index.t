@@ -1,9 +1,5 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
 
-######################### We start with some black magic to print on failure.
-
-BEGIN { $| = 1; print "1..10\n"; }
+BEGIN { $| = 1; print "1..12\n"; }
 END {print "not ok 1\n" unless $loaded;}
 
 use ShiftJIS::String qw(index rindex);
@@ -11,7 +7,7 @@ $^W = 1;
 $loaded = 1;
 print "ok 1\n";
 
-######################### End of black magic.
+#####
 
 print index("", ""    )   eq CORE::index("", ""    )
    && index("", "", -1)   eq CORE::index("", "", -1)
@@ -143,3 +139,23 @@ print $] < 5.005 || 1
   && index ("\0ac\0c\0c", "\0c")  eq CORE::index ("\0ac\0c\0c", "\0c")
   && rindex("\0ac\0c\0c", "\0c")  eq CORE::rindex("\0ac\0c\0c", "\0c")
   ? "ok" : "not ok", " 10\n";
+
+{
+  $str = "\x00\x00\x30\x00\x00\x42\x00\x00\x30\x00\x42\x00";
+  print 1
+    && index($str, "\x00\x30\x00\x42\x00") == 7
+    && index($str, "\x00\x30\x00\x00\x00") == -1
+    && index($str, "\x00\x00\x30\x00") == 0
+    && index($str, "\x00\x30\x00") == 1
+    ? "ok" : "not ok", " 11\n";
+
+  print 1
+    && rindex($str, "\x00\x30\x00\x42\x00") == 7
+    && rindex($str, "\x00\x30\x00\x00\x00") == -1
+    && rindex($str, "\x00\x00\x30\x00") == 6
+    && rindex($str, "\x00\x30\x00") == 7
+    ? "ok" : "not ok", " 12\n";
+}
+
+1;
+__END__
