@@ -1,8 +1,11 @@
 Revision history for Perl module ShiftJIS::String.
 
+0.08  Sun Jun 10 23:40:38 2001
+    - bug fix (__expand, mkrange on perl 5.003).
+
 0.07  Fri Jun  8 22:11:38 2001
     - now runs on perl 5.003 (maybe). (tested on Active Perl 316)
-    - bug fix (mkrange)
+    - bug fix (mkrange, end by trail 0x5C following hyphen)
     - modify t/subst.t (thank you, Andreas Marcel Riechert)
 
 0.06  Wed Jun  6 22:11:38 2001

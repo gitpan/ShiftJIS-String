@@ -17,7 +17,7 @@ require Exporter;
   kataH2Z kanaH2Z kataZ2H kanaZ2H hi2ka ka2hi hiXka spaceH2Z spaceZ2H
 );
 
-$VERSION = '0.07';
+$VERSION = '0.08';
 
 my $Char = '(?:[\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC])';
 
@@ -81,17 +81,18 @@ sub _splitchar{ $_[0] =~ /$Char/go }
 # 
 ############################################################################
 sub index{
+  my($head);
   my $str = shift;
   my $sub = quotemeta shift;
   my $pos = shift;
   $pos = 0 if $pos < 0;
   if($pos){
     ${ &substr(\$str,$pos) } =~ /^($Char*?)$sub/;
-    my $head = $1;
+    $head = $1;
     defined $head ? $pos + &length($head) : -1;
   } else {
     $str =~ /^($Char*?)$sub/;
-    my $head = $1;
+    $head = $1;
     defined $head ? &length($head) : -1;
   }
 }
@@ -102,12 +103,13 @@ sub index{
 # 
 ############################################################################
 sub rindex{
+  my($head);
   my($str,$sub,$pos) = @_;
   my $pat = quotemeta $sub;
   return -1 if $pos < 0;
   (defined $pos ? ${ &substr(\$str, 0, $pos + &length($sub)) } : $str) =~
      /^($Char*)$pat/;
-  my $head = $1;
+  $head = $1;
   defined $head ? &length($head) : -1;
 }
 
@@ -323,7 +325,7 @@ sub trclosure {
 ############################################################################
 
 sub mkrange{
-  my($s, @retv, $range);
+  my($s, @retv, $range, $min, $max);
   my($self,$rev) = @_;
   $self =~ s/^-/\\-/;
   $range = 0;
@@ -331,8 +333,8 @@ sub mkrange{
     if($range){
       if   ($s eq '\\-') {$s = '-'}
       elsif($s eq '\\\\'){$s = '\\'}
-      my $min = @retv ? __ord(pop(@retv)) : 1;
-      my $max = __ord($s);
+      $min = @retv ? __ord(pop(@retv)) : 1;
+      $max = __ord($s);
       push @retv, __expand($min,$max,$rev);
       $range = 0;
     }
@@ -354,6 +356,7 @@ sub __ord{
 
 sub __expand{
   my($ini, $fin, $i, $ch, @retv);
+  my($fin_f,$fin_t,$ini_f,$ini_t);
   my($fr, $to, $rev) = @_;
   if($fr > $to){ if($rev){($fr,$to) = ($to,$fr)} else {return} }
   else {$rev = 0}
@@ -370,19 +373,19 @@ sub __expand{
   $ini = $fr < 0x8140 ? 0x8140 : $fr;
   $fin = $to > 0xFCFC ? 0xFCFC : $to;
   if($ini <= $fin){
-    my($ini_f,$ini_t) = unpack 'C*', pack 'n', $ini;
-    my($fin_f,$fin_t) = unpack 'C*', pack 'n', $fin;
+    ($ini_f,$ini_t) = unpack 'C*', pack 'n', $ini;
+    ($fin_f,$fin_t) = unpack 'C*', pack 'n', $fin;
     $ini_t = 0x40 if $ini_t < 0x40;
     $fin_t = 0xFC if $fin_t > 0xFC;
     if($ini_f == $fin_f){
-      my $ch = chr $ini_f;
+      $ch = chr $ini_f;
       for($i = $ini_t; $i <= $fin_t; $i++){
         next if $i == 0x7F;
         push @retv, $ch.chr($i);
       }
     }
     else {
-      $ch = chr $ini_f;
+      $ch = chr($ini_f);
       for($i = $ini_t; $i <= 0xFC; $i++){
         next if $i == 0x7F;
         push @retv, $ch.chr($i);
@@ -392,7 +395,7 @@ sub __expand{
         $ch = chr($i);
         push @retv, map $ch.chr, 0x40..0x7E, 0x80..0xFC;
       }
-      $ch = chr $fin_f;
+      $ch = chr($fin_f);
       for($i = 0x40; $i <=  $fin_t; $i++){
         next if $i == 0x7F;
         push @retv, $ch.chr($i);
@@ -937,6 +940,8 @@ Tomoyuki SADAHIRO
 
   bqw10602@nifty.com
   http://homepage1.nifty.com/nomenclator/perl/
+
+  Copyright(C) 2001, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
   This program is free software; you can redistribute it and/or 
   modify it under the same terms as Perl itself.

@@ -1,4 +1,4 @@
-A version 0.06
+A version 0.08
 ==============
 
 NAME
@@ -31,11 +31,11 @@ To install this module type the following:
 
 PREREQUISITES
 
-Perl 5.005 or better is recommended.
+perl.
 
 COPYRIGHT AND LICENCE
 
-Copyright(c) 2001, SADAHIRO Tomoyuki. Japan. All rights reserved.
+Copyright(C) 2001, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
 This program is free software; you can redistribute it and/or 
 modify it under the same terms as Perl itself.
