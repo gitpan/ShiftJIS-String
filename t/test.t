@@ -53,20 +53,70 @@ print spaceZ2H('　あ　: 　Ａ＝@＝') eq ' あ :  Ａ＝@＝'
    ? "ok" : "not ok", " 9\n";
 
 $str = 'あいうえおaiueoAIUEOｱｲｳｴｵ日本漢字';
-$rev = '字漢本日ｵｴｳｲｱOEUIAoeuiaおえういあ';
-print $rev eq strrev($str)
+
+print strrev($str) eq '字漢本日ｵｴｳｲｱOEUIAoeuiaおえういあ'
+   && strrev("")   eq ""
+   && strrev(0)    eq  0
+   && strrev(1)    eq  1
+   && strrev("1")  eq "1"
+   && strrev("あ") eq "あ"
+   && strrev("いあ") eq "あい"
+   && strrev("Aあ")  eq "あA"
+   && strrev("あA")  eq "Aあ"
+   && strrev("逆A-\0!\0") eq "\0!\0-A逆"
    ? "ok" : "not ok", " 10\n";
 
-$str = "アイウエオABC-125pQr-xyz";
+$str = "0123アイウエオｱｲｳｴｵ";
 
-print "アイウエオ" eq toupper("アイウエオ")
+print $str eq toupper($str)
+   && $str eq tolower($str)
    ? "ok" : "not ok", " 11\n";
+
+$str = "アイウエオABC-125pQr-xyz";
 print "アイウエオABC-125PQR-XYZ" eq toupper($str)
+   && "アイウエオabc-125pqr-xyz" eq tolower($str)
    ? "ok" : "not ok", " 12\n";
-print "アイウエオ" eq tolower("アイウエオ")
-   ? "ok" : "not ok", " 13\n";
-print "アイウエオabc-125pqr-xyz" eq tolower($str)
-   ? "ok" : "not ok", " 14\n";
+
+print 1
+  && toupper("")  eq ""
+  && tolower("")  eq ""
+  && toupper(0)   eq  0
+  && tolower(0)   eq  0
+  && toupper(12)  eq 12
+  && tolower(12)  eq 12
+  && toupper(-41) eq -41
+  && tolower(-41) eq -41
+  ? "ok" : "not ok", " 13\n";
+
+print 1
+  && hi2ka("")   eq ""
+  && ka2hi("")   eq ""
+  && hiXka("")   eq ""
+  && kanaH2Z("") eq ""
+  && kataH2Z("") eq ""
+  && spaceH2Z("") eq ""
+  && kanaZ2H("") eq ""
+  && kataZ2H("") eq ""
+  && spaceZ2H("") eq ""
+  && hi2ka(0)   eq 0
+  && ka2hi(0)   eq 0
+  && hiXka(0)   eq 0
+  && kanaH2Z(0) eq 0
+  && kataH2Z(0) eq 0
+  && spaceH2Z(0) eq 0
+  && kanaZ2H(0) eq 0
+  && kataZ2H(0) eq 0
+  && spaceZ2H(0) eq 0
+  && hi2ka(1)   eq 1
+  && ka2hi(1)   eq 1
+  && hiXka(1)   eq 1
+  && kanaH2Z(1) eq 1
+  && kataH2Z(1) eq 1
+  && spaceH2Z(1) eq 1
+  && kanaZ2H(1) eq 1
+  && kataZ2H(1) eq 1
+  && spaceZ2H(1) eq 1
+  ? "ok" : "not ok", " 14\n";
 
 {
   my $digit_tr = trclosure(

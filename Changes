@@ -1,5 +1,9 @@
 Revision history for Perl module ShiftJIS::String.
 
+0.15  Sun Dec 30 10:24:36 2001
+    - bug fix (XS): when toupper, tolower, strrev got a numeral
+      (i.e. not a string), the program had been crashed!
+
 0.14  Wed Dec 26 20:52:17 2001
     - Don't call strtr_light() by yourself! (XS version)
       But now checks TABLE briefly and croaks if weird.

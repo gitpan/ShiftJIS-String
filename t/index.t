@@ -133,8 +133,13 @@ print rindex(" a", "a"   ) eq CORE::rindex(" a", "a"   )
   print !$NG ? "ok" : "not ok", " 9\n";
 }
 
-print index ("a\0c",  "a\0b")   eq CORE::index ("a\0c", "a\0b")
-  &&  rindex("a\0c",  "a\0b")   eq CORE::rindex("a\0c", "a\0b")
-  &&  index ("aca\0", "a\0\0")  eq CORE::index ("aca\0", "a\0\0")
-  &&  rindex("aca\0", "a\0\0")  eq CORE::rindex("aca\0", "a\0\0")
+print 1
+  && index ("ba\0c", "a\0c")   eq CORE::index ("ba\0c", "a\0c")
+  && rindex("ba\0c", "a\0c")   eq CORE::rindex("ba\0c", "a\0c")
+  && index ("a\0c",  "a\0b")   eq CORE::index ("a\0c", "a\0b")
+  && rindex("a\0c",  "a\0b")   eq CORE::rindex("a\0c", "a\0b")
+  && index ("aca\0", "a\0\0")  eq CORE::index ("aca\0", "a\0\0")
+  && rindex("aca\0", "a\0\0")  eq CORE::rindex("aca\0", "a\0\0")
+  && index ("\0ac\0c\0c", "\0c")  eq CORE::index ("\0ac\0c\0c", "\0c")
+  && rindex("\0ac\0c\0c", "\0c")  eq CORE::rindex("\0ac\0c\0c", "\0c")
   ? "ok" : "not ok", " 10\n";
