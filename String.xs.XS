@@ -10,7 +10,7 @@
 #define isSJ2OKp(p)   (isSJ1ST(*(p)) && isSJ2ND(*((p)+1)))
 #define isSJ2BTp(p,e) (isSJ1ST(*(p)) && (((p)+1) < (e)))
 
-#define BYTES_PER_SJIS_ROW (376) /* 94 * 2 * 2; for mkrange() */
+#define BYTES_PER_SJIS_ROW (376) /* 94 * 2 * 2; for mkrange */
 #define VIDUAL_CHAR_MAX    (4)   /* for visualize_char() */
 
 /* Roman */
@@ -103,6 +103,7 @@ static U16 ZHIRA_TRAIL[] = {
 static int issjis(U8 * str, STRLEN byte)
 {
     U8 *p, *e;
+
     e = str + byte;
     for (p = str; p < e;) {
 	if (isSJ1OKp(p)) ++p;
@@ -116,6 +117,7 @@ static I32 length (U8* str, STRLEN byte)
 {
     U8 *p, *e;
     I32 len = 0;
+
     e = str + byte;
     for (p = str; p < e; ++p, ++len)
 	if (isSJ2BTp(p,e)) ++p;
@@ -126,6 +128,7 @@ static void bytelist
  (U8 *s, STRLEN byte, U8 *one, U8 *two, STRLEN *olp, STRLEN *tlp)
 {
     U8 *e, *p, *o, *t;
+
     o = one;
     t = two;
     e = s + byte;
@@ -143,6 +146,7 @@ static void bytelist
 static char* strNchr (U8 * s, STRLEN byte, U8* mbc, int n)
 {
     U8 *e, *p;
+
     e = s + byte;
     for (p = s; p < e; p += n)
 	if (!memcmp(p,mbc,n)) return (char*)p;
@@ -157,6 +161,7 @@ static char* strNchr (U8 * s, STRLEN byte, U8* mbc, int n)
 static int diff_by_lead (U8 a, U8 b)
 {
     U8 min, max;
+
     if (a == b) return BYTES_PER_SJIS_ROW;
     if (a < b) { min = a; max = b; } else { min = b; max = a; }
     if (min == 0) min = 0x80;
@@ -306,11 +311,14 @@ static U8* vidualize_char (U8* d, U16 c)
 }
 
 /********
-for strtr_mktable()
+
+for strtr_mktable.
 the first 256bytes: index[256];
 the next 2 bytes:   tolast[2]
 the following: tochar[2] in 400 bytes per 1 fromchar row.
+
 *********/
+
 #define StrtrIndexPad    (258)
 #define StrtrPerSjisRow  (400)
 #define StrtrUndefByte   (0xFF)
@@ -320,6 +328,7 @@ the following: tochar[2] in 400 bytes per 1 fromchar row.
 static U8* strtr_tochar_ptr(U8* tbl, U8 row, U8 cell)
 {
     U8 idx, *ip;
+
     idx = tbl[row];
     if (idx == StrtrUndefByte) return NULL;
     ip = tbl + StrtrIndexPad + (idx * StrtrPerSjisRow);
@@ -628,7 +637,7 @@ kanaH2Z(src)
     d = (U8*)SvPVX(dst);
 
     for (p = s; p < e;) {
-	if (isSJ2BTp(p,e)) { /* zenkaku */
+	if (isSJ2BTp(p,e)) {
 	    *d++ = *p++;
 	    *d++ = *p++;
 	} else if (isHKPCT(*p)) {
@@ -908,7 +917,7 @@ mkrange(src, rev = &PL_sv_undef)
 	    doReverse = FALSE;
 
 	    if (isBACKp(p)) {
-		++p; /* slip '\\' */
+		++p; /* skip '\\' */
 		finL = 0;
 		finT = *p++;
 	    } else if (isSJ2BTp(p,e)) {
@@ -919,8 +928,8 @@ mkrange(src, rev = &PL_sv_undef)
 		finT = *p++;
 	    }
 
-	    fr = (iniL << 8 | iniT);
-	    to = (finL << 8 | finT);
+	    fr = (iniL << 8) | iniT;
+	    to = (finL << 8) | finT;
 
 	    if (fr > to) {
 		if (isReverse) doReverse = TRUE;
@@ -966,6 +975,7 @@ mkrange(src, rev = &PL_sv_undef)
     }
     dbyte = d - (U8*)SvPVX(dst);
     SvCUR_set(dst, dbyte);
+
     if (GIMME_V != G_ARRAY) {
 	XPUSHs(dst);
     } else {
@@ -991,12 +1001,11 @@ strtr_light (src, table, mod = "")
   PREINIT:
     SV *dst;
     bool mod_c, mod_d, mod_s, found;
-    int modes;
-    U8 *p, *e, *s, *d, *tbl;
+    int modes, tlen, cnt;
+    U8 *p, *e, *s, *d, *tbl, idx;
     STRLEN sbyte, dbyte, tblbyte;
     U8 fr[2], *to, tolast[2], pre[2], tmp[2];
     STRLEN fbyte, tbyte, lbyte, prebyte, tmpbyte;
-    int i, tlen, cnt;
   CODE:
     s = SvROK(src)
 	? (U8*)SvPV_force(SvRV(src), sbyte)
@@ -1004,12 +1013,20 @@ strtr_light (src, table, mod = "")
 
     tbl = (U8*)SvPV(table, tblbyte);
 
+    if (tblbyte < StrtrIndexPad)
+	croak("ShiftJIS::String Panic! too short table in strtr_light");
+    idx = (tblbyte - StrtrIndexPad) / StrtrPerSjisRow;
+
+    for (p = tbl, e = tbl + 256; p < e; p++)
+	if (*p != StrtrUndefByte && idx <= *p)
+	    croak("ShiftJIS::String Panic! index is broken in strtr_light");
+
     tolast[0] = tbl[StrtrIndexPad - 2];
     tolast[1] = tbl[StrtrIndexPad - 1];
-    lbyte = (tolast[0] == StrtrUndefByte) ? 0 : tolast[0] ? 2 : 1;
+    lbyte = (*tolast == StrtrUndefByte) ? 0 : *tolast ? 2 : 1;
 
     /* now only bool, not a string-length */
-    tlen = (tolast[0] != StrtrUndefByte);
+    tlen = (*tolast != StrtrUndefByte);
 
     mod_c = strchr(mod,'c') != NULL;
     mod_d = strchr(mod,'d') != NULL;
@@ -1192,7 +1209,7 @@ strtr_mktable (search, replace, mod = "")
     }
 
     d = (U8*)SvGROW(dst, dbyte + 1);
-    if (!d) croak("ShiftJIS::String Panic in strtr_mktable()");
+    if (!d) croak("ShiftJIS::String Panic in strtr_mktable");
 
     p = d + StrtrIndexPad;
     dend = d + dbyte;
@@ -1208,6 +1225,7 @@ strtr_mktable (search, replace, mod = "")
 	    fr[0] = 0;
 	    fr[1] = *f++;
 	}
+
 	if (t && t < tend) {
 	    if (isSJ2BTp(t,tend)) {
 		to[0] = *t++;

@@ -24,11 +24,14 @@ print strtr('‚¨‚©‚©‚¤‚ß‚Ú‚µ@‚¿‚¿‚Æ‚Í‚Í', '‚Ÿ-‚ñ', '', 's')
 print strtr("ğŒ‰‰Zq‚Ìg‚¢‚·‚¬‚ÍŒ©‹ê‚µ‚¢", '‚Ÿ-‚ñ', '”', 'cs')
     eq '”‚Ì”‚¢‚·‚¬‚Í”‚µ‚¢' ? "ok" : "not ok", " 4\n";
 
-print strtr("90 - 32 = 58", "0-9", "A-J")
-    eq "JA - DC = FI" ? "ok" : "not ok", " 5\n";
+print strtr("90 - 32 = 58", "0-9", "A-J") eq "JA - DC = FI"
+   && strtr("90 - 32 = 58", "0-9", "A-J", "R") eq "JA - 32 = 58"
+    ? "ok" : "not ok", " 5\n";
 
-print strtr("90 - 32 = 58", "0-9", "A-J", "R")
-    eq "JA - 32 = 58" ? "ok" : "not ok", " 6\n";
+print strtr("A\0BC\0\0", "A\0C\0", "XY\0K") eq "XYB\0YY"
+   && strtr("\0\0\0AA", "\0", "", "cd") eq "\0\0\0"
+   && strtr("\0\0V\0AA", "\0", "", "d") eq "VAA"
+ ? "ok" : "not ok", " 6\n";
 
 print strtr(
     "Caesar Aether Goethe", 
