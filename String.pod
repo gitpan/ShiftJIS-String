@@ -9,6 +9,15 @@ ShiftJIS::String - functions to manipulate Shift_JIS encoded strings
 
   ShiftJIS::String::substr($str, ShiftJIS::String::index($str, $substr));
 
+=head1 ABOUT THIS POD
+
+This POD is written in Shift_JIS encoding.
+
+Do you see 'C<あ>' as C<HIRAGANA LETTER A>?
+or 'C<\>' as C<YEN SIGN>, not as C<REVERSE SOLIDUS>?
+Otherwise you'd change your font to an appropriate one.
+(or the POD might be badly converted.)
+
 =head1 DESCRIPTION
 
 This module provides some functions which emulate
@@ -174,6 +183,69 @@ Leading whitespace characters do not produce any field
   strsplit(undef, ' 　 This  is 　 Perl.');
   # ('This', 'is', 'Perl.')
 
+=back
+
+=head2 Comparison
+
+=over 4
+
+=item C<strcmp(LEFT-STRING, RIGHT-STRING)>
+
+Returns 1 (when C<LEFT-STRING> is greater than C<RIGHT-STRING>)
+or 0 (when C<LEFT-STRING> is equal to C<RIGHT-STRING>)
+or -1 (when C<LEFT-STRING> is lesser than C<RIGHT-STRING>).
+
+The order is roughly as shown the following list.
+
+    JIS X 0201 Roman, JIS X 0201 Kana, then JIS X 0208 Kanji (Zenkaku).
+
+For example,
+C<0x41> as C<'A'> is lesser than C<0xB1> (C<'ｱ' HANKAKU KATAKANA A>).
+C<0xB1> as C<'ｱ'> is lesser than C<0x8341> (C<'ア' KATAKANA A>).
+C<0x8341> as C<'ア'> is lesser than C<0x8383> (C<'ャ' KATAKANA SMALL YA>).
+C<0x8383> as C<'ャ'> is lesser than C<0x83B1> (C<'Τ' GREEK CAPITAL TAU>).
+
+B<Caveat!>
+Compare the 2nd and the 4th examples.
+Byte C<"\xB1"> is lesser than byte C<"\x83"> as the leading bytes;
+while greater as the trailing bytes.
+Shortly, the ordering as binary is broken for the Shift_JIS codepoint order.
+
+=item C<strEQ(LEFT-STRING, RIGHT-STRING)>
+
+Returns a boolean whether C<LEFT-STRING> is equal to C<RIGHT-STRING>.
+
+B<Note:> C<strEQ> is an expensive equivalence of the C<CORE>'s C<eq> operator.
+
+=item C<strNE(LEFT-STRING, RIGHT-STRING)>
+
+Returns a boolean whether C<LEFT-STRING> is not equal to C<RIGHT-STRING>.
+
+B<Note:> C<strNE> is an expensive equivalence of the C<CORE>'s C<ne> operator.
+
+=item C<strLT(LEFT-STRING, RIGHT-STRING)>
+
+Returns a boolean whether C<LEFT-STRING> is lesser than C<RIGHT-STRING>.
+
+=item C<strLE(LEFT-STRING, RIGHT-STRING)>
+
+Returns a boolean whether C<LEFT-STRING> is lesser than or equal to C<RIGHT-STRING>.
+
+=item C<strGT(LEFT-STRING, RIGHT-STRING)>
+
+Returns a boolean whether C<LEFT-STRING> is greater than C<RIGHT-STRING>.
+
+=item C<strGE(LEFT-STRING, RIGHT-STRING)>
+
+Returns a boolean whether C<LEFT-STRING> is greater than or equal to C<RIGHT-STRING>.
+
+=item C<strxfrm(STRING)>
+
+Returns a string transformed so that C<CORE:: cmp> can be used
+for binary comparisons (B<NOT> the length of the transformed string).
+
+I.e. C<strxfrm($a) cmp strxfrm($b)> is equivalent to C<strcmp($a, $b)>,
+as long as your C<cmp> doesn't use any locale other than that of Perl.
 
 =back
 
@@ -186,7 +258,7 @@ Leading whitespace characters do not produce any field
 Returns the character list (not in list context, as a concatenated string)
 gained by parsing the specified character range.
 
-A character range is specified with a HYPHEN-MINUS, C<'-'>. The backslashed 
+A character range is specified with a C<HYPHEN-MINUS>, C<'-'>. The backslashed 
 combinations C<'\-'> and C<'\\'> are used instead of the characters
 C<'-'> and C<'\'>, respectively. The hyphen at the beginning or 
 end of the range is also evaluated as the hyphen itself.
@@ -489,61 +561,6 @@ in the specified string and returns the converted string.
 
 =back
 
-=head2 Compare
-
-=over 4
-
-=item C<strcmp(LEFT-STRING, RIGHT-STRING)>
-
-Returns 1 (when C<LEFT-STRING> is greater than C<RIGHT-STRING>)
-or 0 (when C<LEFT-STRING> is equal to C<RIGHT-STRING>)
-or -1 (when C<LEFT-STRING> is lesser than C<RIGHT-STRING>).
-
-The order is roughly as shown the following list.
-
-    JIS X 0201 Roman, JIS X 0201 Kana, then JIS X 0208 Kanji (Zenkaku).
-
-For example,
-C<0x41> as C<'A'> is lesser than C<0xB1> as C<'ｱ'>.
-C<0xB1> as C<'ｱ'> is lesser than C<0x8341> as C<'ア'>.
-C<0x8341> as C<'ア'> is lesser than C<0x8383> as C<'ャ'>.
-C<0x8383> as C<'ャ'> is lesser than C<0x83B1> as C<'Τ'> (greek Tau).
-
-B<Caveat!> Compare the 2nd and the 4th examples.
-Byte C<"\xB1"> is lesser than byte C<"\x83"> as the leading bytes;
-while greater as the trailing bytes.
-Shortly, the ordering as binary is broken for the Shift_JIS codepoint order.
-
-=item C<strEQ(LEFT-STRING, RIGHT-STRING)>
-
-Returns a boolean whether C<LEFT-STRING> is equal to C<RIGHT-STRING>.
-
-B<Note:> C<strEQ> is an expensive equivalent of the C<CORE>'s C<eq> operator.
-
-=item C<strNE(LEFT-STRING, RIGHT-STRING)>
-
-Returns a boolean whether C<LEFT-STRING> is not equal to C<RIGHT-STRING>.
-
-B<Note:> C<strNE> is an expensive equivalent of the C<CORE>'s C<ne> operator.
-
-=item C<strLT(LEFT-STRING, RIGHT-STRING)>
-
-Returns a boolean whether C<LEFT-STRING> is lesser than C<RIGHT-STRING>.
-
-=item C<strLE(LEFT-STRING, RIGHT-STRING)>
-
-Returns a boolean whether C<LEFT-STRING> is lesser than or equal to C<RIGHT-STRING>.
-
-=item C<strGT(LEFT-STRING, RIGHT-STRING)>
-
-Returns a boolean whether C<LEFT-STRING> is greater than C<RIGHT-STRING>.
-
-=item C<strGE(LEFT-STRING, RIGHT-STRING)>
-
-Returns a boolean whether C<LEFT-STRING> is greater than or equal to C<RIGHT-STRING>.
-
-=back
-
 =head1 CAVEAT
 
 A legal Shift_JIS character in this module
@@ -597,7 +614,7 @@ Tomoyuki SADAHIRO
   bqw10602@nifty.com
   http://homepage1.nifty.com/nomenclator/perl/
 
-  Copyright(C) 2001, SADAHIRO Tomoyuki. Japan. All rights reserved.
+  Copyright(C) 2001-2002, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
   This program is free software; you can redistribute it and/or 
   modify it under the same terms as Perl itself.
@@ -607,6 +624,8 @@ Tomoyuki SADAHIRO
 =over 4
 
 =item L<ShiftJIS::Regexp>
+
+=item L<ShiftJIS::Collate>
 
 =item L<String::Multibyte>
 

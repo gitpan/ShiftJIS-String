@@ -11,7 +11,7 @@
 #define isSJ2BTp(p,e) (isSJ1ST(*(p)) && (((p)+1) < (e)))
 
 #define SJIS_BYTES_PER_ROW (376) /* 94 * 2 * 2; for mkrange */
-#define SJIS_VIDUAL_MAX    (4)   /* for visualize_char() */
+#define SJIS_DISPLAY_MAX   (4) /* for sjis_display() */
 
 /* Roman */
 #define isSJ_CNTRL(c)  ((0x00<=(c) && (c)<=0x1F) || (c)==0x7F)
@@ -104,7 +104,7 @@ static U16 SJIS_ZHIRA_TRAIL[] = {
     0xB4,   0xA6,   0xDD
 };
 
-static int issjis(U8 * str, STRLEN byte)
+static int issjis(U8 *str, STRLEN byte)
 {
     U8 *p, *e;
 
@@ -117,7 +117,7 @@ static int issjis(U8 * str, STRLEN byte)
     return(1);
 }
 
-static I32 length (U8* str, STRLEN byte)
+static I32 length (U8 *str, STRLEN byte)
 {
     U8 *p, *e;
     I32 len = 0;
@@ -147,7 +147,7 @@ static void bytelist
     *o = *t = '\0';
 }
 
-static char* strNchr (U8 * s, STRLEN byte, U8* mbc, int n)
+static char *strNchr (U8 *s, STRLEN byte, U8 *mbc, int n)
 {
     U8 *e, *p;
 
@@ -159,7 +159,7 @@ static char* strNchr (U8 * s, STRLEN byte, U8* mbc, int n)
 
 /*
  * internal for mkrange
- * a, b should be 0 or 0x81-0x9F or 0xE0-0xFC
+ * a, b are assumed in the range of 0 or 0x81-0x9F or 0xE0-0xFC.
  */
 static int diff_by_lead (U8 a, U8 b)
 {
@@ -176,7 +176,7 @@ static int diff_by_lead (U8 a, U8 b)
 /*
  * internal for mkrange
  */
-static U8* range_expand (U8* d, U16 fr, U16 to)
+static U8 *range_expand (U8 *d, U16 fr, U16 to)
 {
     int i, ini, fin;
 
@@ -214,7 +214,7 @@ static U8* range_expand (U8* d, U16 fr, U16 to)
 		*d++ = c;
 	    }
 	    for (r = iniL+1; r < finL; r++) {
-	        if (0xA0 <= r && r <= 0xDF) continue;
+		if (0xA0 <= r && r <= 0xDF) continue;
 		for (c = 0x40; c <= 0xFC; c++) {
 		    if (c == 0x7F) continue;
 		    *d++ = r;
@@ -235,7 +235,7 @@ static U8* range_expand (U8* d, U16 fr, U16 to)
 /*
  * internal for mkrange
  */
-static U8* range_expand_rev (U8* d, U16 fr, U16 to)
+static U8 *range_expand_rev (U8 *d, U16 fr, U16 to)
 {
     int i, ini, fin;
 
@@ -294,7 +294,7 @@ static U8* range_expand_rev (U8* d, U16 fr, U16 to)
 /*
  * for error message
  */
-static U8* vidualize_char (U8* d, U16 c)
+static U8 *sjis_display (U8 *d, U16 c)
 {
     if (isSJ_CNTRL(c)) {
 	*d++ = '\\';
@@ -314,34 +314,35 @@ static U8* vidualize_char (U8* d, U16 c)
 }
 
 /********
-
-for strtr_mktable.
-the first 256bytes: index[256];
-the next 2 bytes:   tolast[2]
-the following: tochar[2] in 400 bytes per 1 fromchar row.
-
-*********/
+ *
+ * for mktrans.
+ *
+ * the first 256bytes: index[256];
+ * the next 2 bytes:   tolast[2]
+ * the following: tochar[2] in 400 bytes per 1 fromchar row.
+ *
+ ********/
 
 /* 256 + 2 */
-#define SJIS_StrtrIndexPad    (258)
+#define SJIS_TransIndexPad    (258)
 
 /* at least,
  * for single-byte 0x00..0x7F and 0xA1..0xDF (191 chars) => 382 bytes
  * for double-byte 0x40..0x7E and 0x80..0xFC (188 chars) => 376 bytes
  */
-#define SJIS_StrtrBytesPerRow (400)
+#define SJIS_TransBytesPerRow (400)
 
-#define SJIS_StrtrUndefByte (0xFF)
-#define SJIS_StrtrDelByte   (0xFE)
+#define SJIS_TransUndefByte (0xFF)
+#define SJIS_TransDelByte   (0xFE)
 
-/* row-cell is of "fromchar" */
-static U8* strtr_tochar_ptr(U8* tbl, U8 row, U8 cell)
+static U8 *
+trans_toptr(U8 *tr, U8 row, U8 cell) /* row-cell: of "fromchar" */
 {
     U8 idx, *ip;
 
-    idx = tbl[row];
-    if (idx == SJIS_StrtrUndefByte) return NULL;
-    ip = tbl + SJIS_StrtrIndexPad + (idx * SJIS_StrtrBytesPerRow);
+    idx = tr[row];
+    if (idx == SJIS_TransUndefByte) return NULL;
+    ip = tr + SJIS_TransIndexPad + (idx * SJIS_TransBytesPerRow);
 
     if (row) {
 	if (!isSJ2ND(cell)) return NULL;
@@ -353,23 +354,6 @@ static U8* strtr_tochar_ptr(U8* tbl, U8 row, U8 cell)
     return ip;
 }
 
-static int sjis_strcmp (U8 *sL, STRLEN lbyte, U8 *sR, STRLEN rbyte)
-{
-    U8 *pL, *pR, *eL, *eR;
-    int cL = 0, cR = 0;
-
-    eL = sL + lbyte;
-    eR = sR + rbyte;
-    for (pL = sL, pR = sR; pL < eL && pR < eR; pL += cL, pR += cR) {
-	cL = isSJ2BTp(pL,eL) ? 2 : 1;
-	cR = isSJ2BTp(pR,eR) ? 2 : 1;
-
-	if ( cL !=  cR) return (cL - cR);
-	if (*pL != *pR) return (*pL - *pR);
-	if (cL > 1 && pL[1] != pR[1]) return (pL[1] - pR[1]);
-    }
-    return (pL != eL ? 1 : pR != eR ? -1 : 0);
-}
 
 MODULE = ShiftJIS::String	PACKAGE = ShiftJIS::String
 
@@ -379,23 +363,23 @@ issjis(...)
     I32 i;
     U8 *s;
     STRLEN byte;
-  CODE:
+  PPCODE:
     for (i = 0; i < items; i++) {
 	s = (U8*)SvPV(ST(i), byte);
-	if (issjis(s, byte) == 0) XSRETURN_NO;
+	if (!issjis(s, byte)) XSRETURN_NO;
     }
     XSRETURN_YES;
 
 
 SV*
-length(arg)
-    SV *arg
+length(src)
+    SV *src
   PROTOTYPE: $
   PREINIT:
     U8 *s;
     STRLEN byte;
   CODE:
-    s = (U8*)SvPV(arg,byte);
+    s = (U8*)SvPV(src,byte);
     RETVAL = newSViv(length(s,byte));
   OUTPUT:
     RETVAL
@@ -433,43 +417,42 @@ strrev(src)
 
 SV*
 strspn(src, search)
-    SV * src
-    SV * search
+    SV *src
+    SV *search
   PROTOTYPE: $$
   ALIAS:
     strcspn = 1
   PREINIT:
     U8 *s, *p, *e, *lst, *one, *two;
-    STRLEN sbyte, lbyte, ol = 0, tl = 0, cnt = 0;
+    STRLEN sbyte, lbyte, ol = 0, tl = 0;
+    I32 cnt = 0;
   CODE:
     s = (U8*)SvPV(src,sbyte);
-    e = s + sbyte;
     lst = (U8*)SvPV(search,lbyte);
     New(0, one, lbyte + 1, U8);
     New(0, two, lbyte + 1, U8);
     bytelist(lst,lbyte,one,two,&ol,&tl);
-    for (p = s; p < e; ) {
+    for (p = s, e = s + sbyte; p < e; ) {
 	if (isSJ2BTp(p,e)) {
 	   if ((!ix) != (strNchr(two,tl,p,2) != NULL)) break;
-	   cnt++; p+=2;
+	   ++cnt; p += 2;
 	} else {
 	   if ((!ix) != (strNchr(one,ol,p,1) != NULL)) break;
-	   cnt++; p++;
+	   ++cnt; ++p;
 	}
     }
     Safefree(one);
     Safefree(two);
-    RETVAL = newSVuv(cnt);
+    RETVAL = newSViv(cnt);
   OUTPUT:
     RETVAL
 
 
-
 I32
-index(src,sub,pos=-0)
-    SV * src
-    SV * sub
-    I32  pos
+index(src, sub, pos=-0)
+    SV *src
+    SV *sub
+    I32 pos
   PROTOTYPE: $$;$
   ALIAS:
     rindex = 1
@@ -482,7 +465,7 @@ index(src,sub,pos=-0)
     b = (U8*)SvPV(sub,bbyte);
     slen = length(s,sbyte);
 
-    if (ix == 0) {
+    if (!ix) {
 	if (items == 2) pos = 0;
 	if (bbyte == 0) XSRETURN_IV(pos <= 0 ? 0 : slen <= pos ? slen : pos);
 	if (slen < pos) XSRETURN_IV(-1);
@@ -491,29 +474,27 @@ index(src,sub,pos=-0)
 	if (bbyte == 0) XSRETURN_IV(pos <= 0 ? 0 : slen <= pos ? slen : pos);
 	if (pos  <   0) XSRETURN_IV(-1);
     }
-    cnt = 0;
     RETVAL = -1;
     e = s + sbyte - (bbyte - 1); /* p must be followed by bbyte */
-    for (p = s; p < e; ++p) {
+    for (p = s, cnt = 0; p < e; ++p, ++cnt) {
 	if (ix ? cnt <= pos : pos <= cnt) {
 	    if (*p == *b && (bbyte == 1 || memEQ(p,b,bbyte))) {
 		RETVAL = cnt;
-		if (ix == 0) break;
+		if (!ix) break;
 	    }
 	}
 	if (isSJ2BTp(p,e)) ++p;
-	++cnt;
     }
   OUTPUT:
     RETVAL
 
 
 void
-possubstr (src,off,len=-0,rep=&PL_sv_undef)
-    SV* src
+possubstr (src, off, len=-0, rep=&PL_sv_undef)
+    SV *src
     I32 off
     I32 len
-    SV* rep
+    SV *rep
   PROTOTYPE: $$;$$
   PREINIT:
     U8 *s, *e, *p, *p_ini, *p_fin;
@@ -525,15 +506,17 @@ possubstr (src,off,len=-0,rep=&PL_sv_undef)
 	? (U8*)SvPV_force(SvRV(src), sbyte)
 	: (U8*)SvPV(src, sbyte);
 
-    e = s + sbyte;
     slen = length(s,sbyte);
-    if (slen < off) except = TRUE;
+    if (slen < off)
+	except = TRUE;
 
     if (items == 2) {
 	len = slen - off;
     } else {
-	if (off + slen < 0 && len + slen < 0) except = TRUE;
-        else if (0 <= len && off + len + slen < 0) except = TRUE;
+	if (off + slen < 0 && len + slen < 0)
+	    except = TRUE;
+        else if (0 <= len && off + len + slen < 0)
+	    except = TRUE;
     }
     if (except) {
        if (items > 3) croak("ShiftJIS::String outside of string in substr");
@@ -549,7 +532,7 @@ possubstr (src,off,len=-0,rep=&PL_sv_undef)
     p_ini = (ini == 0) ? s : NULL;
     p_fin = (fin == 0) ? s : NULL;
 
-    for (p = s, cnt = 0; p < e; ) {
+    for (p = s, e = s + sbyte, cnt = 0; p < e; ) {
 	if (fin <= cnt) break; /* never ini > fin */
 	if (isSJ2BTp(p,e)) ++p;
 	++p; ++cnt;
@@ -560,9 +543,9 @@ possubstr (src,off,len=-0,rep=&PL_sv_undef)
     XPUSHs(sv_2mortal(newSViv(p_fin - p_ini)));
 
 
-SV *
+SV*
 hiXka(src)
-    SV * src
+    SV *src
   PROTOTYPE: $
   ALIAS:
     hi2ka = 1
@@ -570,7 +553,7 @@ hiXka(src)
   PREINIT:
     U8 *s, *p, *e, *d;
     STRLEN byte;
-    SV* dst;
+    SV *dst;
     I32 cnt = 0;
   CODE:
     s = SvROK(src)
@@ -587,15 +570,18 @@ hiXka(src)
 		if(isSJ_HI_VUp(p)) {
 		    *d++ = *p++ + 1;
 		    *d++ = 0x94;
-		    p+=3; ++cnt; continue;
+		    p += 3; ++cnt;
+		    continue;
 		} else if (isSJ_HI1ST(*p) && isSJ_HI2ND(*(p+1))) {
 		    *d++ = *p++ + 1;
 		    *d++ = *p - (SJIS_DIFF_HIRA_KATA + isSJ_HI2ND1(*p));
-		    p++; ++cnt; continue;
+		    ++p; ++cnt;
+		    continue;
 		} else if (isSJ_HI_ITERp(p)) {
 		    *d++ = *p++;
 		    *d++ = *p - SJIS_DIFF_HIRA_KATA_ITER;
-		    p++; ++cnt; continue;
+		    ++p; ++cnt;
+		    continue;
 		}
 	    }
 	    if (ix != 1) {
@@ -603,26 +589,31 @@ hiXka(src)
 		    if (isSJ_KA2ND(*(p+1))) {
 			*d++ = *p++ - 1;
 			*d++ = *p + (SJIS_DIFF_HIRA_KATA + isSJ_KA2ND1(*p));
-			p++; ++cnt; continue;
+			++p; ++cnt;
+			continue;
 		    } else if (isSJ_KA2ND_VU(*(p+1))) {
 			*d++ = *p++ - 1;
 			*d++ = 0xA4;
 			*d++ = 0x81;
 			*d++ = 0x4A;
-			p++; ++cnt; continue;
+			++p; ++cnt;
+			continue;
 		    } else if (isSJ_KA2ND_KA(*(p+1))) {
 			*d++ = *p++ - 1;
 			*d++ = 0xA9;
-			p++; ++cnt; continue;
+			++p; ++cnt;
+			continue;
 		    } else if (isSJ_KA2ND_KE(*(p+1))) {
 			*d++ = *p++ - 1;
 			*d++ = 0xAF;
-			p++; ++cnt; continue;
+			++p; ++cnt;
+			continue;
 		    }
 		} else if (isSJ_KA_ITERp(p)) {
 		    *d++ = *p++;
 		    *d++ = *p + SJIS_DIFF_HIRA_KATA_ITER;
-		    p++; ++cnt; continue;
+		    ++p; ++cnt;
+		    continue;
 		}
 	    }
 	    *d++ = *p++;
@@ -643,16 +634,16 @@ hiXka(src)
     RETVAL
 
 
-SV *
+SV*
 kanaH2Z(src)
-    SV * src
+    SV *src
   PROTOTYPE: $
   ALIAS:
     kataH2Z = 1
   PREINIT:
     U8 *s, *p, *e, *d;
     STRLEN byte;
-    SV* dst;
+    SV *dst;
     I32 cnt = 0;
   CODE:
     s = SvROK(src)
@@ -674,14 +665,19 @@ kanaH2Z(src)
 	} else if (isSJ_HKANA(*p)) {
 	    *d++ = 0x83;
 	    *d   = (U8)SJIS_HKANA_TRAIL[ *p - 0xA0 ];
-	    if (isSJ_HKATO(*p) && isSJ_HTEN2(*(p+1))) ++*d,  p++;
-	    else if (isSJ_H_VUp(p)) *d = 148, p++;
-	    else if (isSJ_HHAHO(*p)) {
-		if      (isSJ_HTEN2(*(p+1))) ++*d,  p++;
-		else if (isSJ_HMARU(*(p+1))) *d+=2, p++;
+	    if (isSJ_HKATO(*p) && isSJ_HTEN2(*(p+1))) {
+		++*d; ++p;
+	    } else if (isSJ_H_VUp(p)) {
+		*d = 148; ++p;
+	    } else if (isSJ_HHAHO(*p)) {
+		if (isSJ_HTEN2(*(p+1))) {
+		    ++*d; ++p;
+		} else if (isSJ_HMARU(*(p+1))) {
+		    *d += 2; ++p;
+		}
 	    }
 	    ++d; ++p; ++cnt;
-	} else { /* single-byte char except KANA */
+	} else {
 	    *d++ = *p++;
 	}
     }
@@ -698,17 +694,16 @@ kanaH2Z(src)
 
 
 
-
-SV *
+SV*
 kanaZ2H(src)
-    SV * src
+    SV *src
   PROTOTYPE: $
   ALIAS:
     kataZ2H = 1
   PREINIT:
     U8 *s, *p, *e, *d;
     STRLEN byte;
-    SV* dst;
+    SV *dst;
     U16 uv;
     I32 cnt = 0;
   CODE:
@@ -719,7 +714,6 @@ kanaZ2H(src)
     dst = byte ? newSV(byte) : newSVpvn("",0);
     (void)SvPOK_only(dst);
     d = (U8*)SvPVX(dst);
-
 
     for (p = s, e = s + byte; p < e; ) {
 	if (isSJ2BTp(p,e)) {
@@ -776,14 +770,14 @@ kanaZ2H(src)
     RETVAL
 
 
-SV *
+SV*
 spaceH2Z(src)
-    SV * src
+    SV *src
   PROTOTYPE: $
   PREINIT:
     U8 *s, *p, *e, *d;
     STRLEN byte;
-    SV* dst;
+    SV *dst;
     I32 cnt = 0;
   CODE:
     s = SvROK(src)
@@ -819,14 +813,14 @@ spaceH2Z(src)
 
 
 
-SV *
+SV*
 spaceZ2H(src)
-    SV * src
+    SV *src
   PROTOTYPE: $
   PREINIT:
     U8 *s, *p, *e, *d;
     STRLEN byte;
-    SV* dst;
+    SV *dst;
     U16 uv;
     I32 cnt = 0;
   CODE:
@@ -841,8 +835,9 @@ spaceZ2H(src)
     for (p = s, e = s + byte; p < e; ) {
 	if (isSJ2BTp(p,e)) {
 	    if (isSJ_ZSPACEp(p)) {
-	        *d++ = 0x20;
-		p += 2; ++cnt;
+		*d++ = 0x20;
+		p += 2;
+		++cnt;
 	    } else {
 		*d++ = *p++;
 		*d++ = *p++;
@@ -863,7 +858,7 @@ spaceZ2H(src)
     RETVAL
 
 
-SV *
+SV*
 toupper(src)
     SV * src
   PROTOTYPE: $
@@ -872,7 +867,7 @@ toupper(src)
   PREINIT:
     U8 *s, *p, *e, *d;
     STRLEN byte;
-    SV* dst;
+    SV *dst;
     I32 cnt = 0;
   CODE:
     s = SvROK(src)
@@ -911,21 +906,20 @@ toupper(src)
 
 void
 mkrange(src, rev = &PL_sv_undef)
-    SV * src
-    SV * rev
+    SV *src
+    SV *rev
   PROTOTYPE: $;$
   PREINIT:
     U8 *s, *p, *e, *d;
     U8 lastL = 0, iniL, iniT, finL, finT;
     STRLEN sbyte, dbyte, dstcur;
-    SV* dst;
+    SV *dst;
     U16 fr, to;
     bool isReverse, doReverse, isrange;
   PPCODE:
     isReverse = SvTRUE(rev);
 
     s = (U8*)SvPV(src, sbyte);
-    e = s + sbyte;
 
     dbyte = sbyte + 1;
     dst = sv_2mortal(newSV(dbyte));
@@ -933,10 +927,9 @@ mkrange(src, rev = &PL_sv_undef)
     d = (U8*)SvPVX(dst);
 
     p = s;
-    if (*p == '-') *d++ = *p++;
+    if (sbyte && *p == '-') *d++ = *p++;
 
-    isrange = FALSE;
-    while (p < e) {
+    for (e = s + sbyte, isrange = FALSE; p < e; ) {
 	if (isrange) {
 	    iniL = lastL;
 	    iniT = *(d-1);
@@ -960,11 +953,11 @@ mkrange(src, rev = &PL_sv_undef)
 	    if (fr > to) {
 		if (isReverse) doReverse = TRUE;
 		else {
-		    char *m; char msg[SJIS_VIDUAL_MAX * 2 + 2];
+		    char *m; char msg[SJIS_DISPLAY_MAX * 2 + 2];
 		    m = msg;
-		    m = (char*)vidualize_char((U8*)m, fr);
+		    m = (char*)sjis_display((U8*)m, fr);
 		    *m++ = '-';
-		    m = (char*)vidualize_char((U8*)m, to);
+		    m = (char*)sjis_display((U8*)m, to);
 		    *m++ = '\0';
 		    croak("ShiftJIS::String Invalid character range %s", msg);
 		}
@@ -980,7 +973,6 @@ mkrange(src, rev = &PL_sv_undef)
 		d = range_expand(d, fr + 1, to); /* skip the first */
 	    }
 	    isrange = FALSE;
-
 	} else {
 	    if (isSJ_BACKp(p)) {
 		lastL = 0;
@@ -1005,30 +997,30 @@ mkrange(src, rev = &PL_sv_undef)
 	XPUSHs(dst);
     } else {
 	I32 dlen;
-	int ch = 0;
+        STRLEN ch = 0;
 	d = (U8*)SvPV(dst,dbyte);
 	e = d + dbyte;
 	dlen = length(d, dbyte);
         EXTEND(SP, dlen);
 	for(p = d; p < e; p += ch) {
 	    ch = isSJ2BTp(p,e) ? 2 : 1;
-	    PUSHs(sv_2mortal(newSVpvn(p,ch)));
+	    PUSHs(sv_2mortal(newSVpvn((char*)p,ch)));
 	}
     }
 
 
 SV*
-strtr_light (src, table, mod = "")
-    SV * src;
-    SV * table;
-    char * mod;
+strtr_light (src, trans, mod = &PL_sv_no)
+    SV *src;
+    SV *trans;
+    SV *mod;
   PROTOTYPE: $$;$
   PREINIT:
     SV *dst;
     bool mod_c, mod_d, mod_s, found;
     int modes, tlen, cnt;
-    U8 *p, *e, *s, *d, *tbl, idx;
-    STRLEN byte, tblbyte;
+    U8 *p, *e, *s, *d, *tr, *m, idx;
+    STRLEN byte, trbyte, modbyte;
     U8 fr[2], *to, tolast[2], pre[2], tmp[2];
     STRLEN fbyte, tbyte, lbyte, prebyte, tmpbyte;
   CODE:
@@ -1036,26 +1028,27 @@ strtr_light (src, table, mod = "")
 	? (U8*)SvPV_force(SvRV(src), byte)
 	: (U8*)SvPV(src, byte);
 
-    tbl = (U8*)SvPV(table, tblbyte);
+    tr = (U8*)SvPV(trans, trbyte);
 
-    if (tblbyte < SJIS_StrtrIndexPad)
-	croak("ShiftJIS::String Panic! too short table in strtr_light");
-    idx = (tblbyte - SJIS_StrtrIndexPad) / SJIS_StrtrBytesPerRow;
+    if (trbyte < SJIS_TransIndexPad)
+	croak("ShiftJIS::String Panic! too short trans string in strtr_light");
+    idx = (trbyte - SJIS_TransIndexPad) / SJIS_TransBytesPerRow;
 
-    for (p = tbl, e = tbl + 256; p < e; p++)
-	if (*p != SJIS_StrtrUndefByte && idx <= *p)
+    for (p = tr, e = tr + 256; p < e; p++)
+	if (*p != SJIS_TransUndefByte && idx <= *p)
 	    croak("ShiftJIS::String Panic! index is broken in strtr_light");
 
-    tolast[0] = tbl[SJIS_StrtrIndexPad - 2];
-    tolast[1] = tbl[SJIS_StrtrIndexPad - 1];
-    lbyte = (*tolast == SJIS_StrtrUndefByte) ? 0 : *tolast ? 2 : 1;
+    tolast[0] = tr[SJIS_TransIndexPad - 2];
+    tolast[1] = tr[SJIS_TransIndexPad - 1];
+    lbyte = (*tolast == SJIS_TransUndefByte) ? 0 : *tolast ? 2 : 1;
 
     /* now only bool, not a string-length */
-    tlen = (*tolast != SJIS_StrtrUndefByte);
+    tlen = (*tolast != SJIS_TransUndefByte);
 
-    mod_c = strchr(mod,'c') != NULL;
-    mod_d = strchr(mod,'d') != NULL;
-    mod_s = strchr(mod,'s') != NULL;
+    m = (U8*)SvPV(mod, modbyte);
+    mod_c = memchr((void*)m, 'c', modbyte) != NULL;
+    mod_d = memchr((void*)m, 'd', modbyte) != NULL;
+    mod_s = memchr((void*)m, 's', modbyte) != NULL;
     modes = (mod_s << 2) | (mod_d << 1) | mod_c;
 
     dst = byte ? newSV(2 * byte) : newSVpvn("",0);
@@ -1078,11 +1071,11 @@ strtr_light (src, table, mod = "")
 
 	found = FALSE;
 	tbyte = 0;
-	to = strtr_tochar_ptr(tbl, fr[0], fr[1]);
+	to = trans_toptr(tr, fr[0], fr[1]);
 
-	if (to != NULL && *to != SJIS_StrtrUndefByte) {
+	if (to != NULL && *to != SJIS_TransUndefByte) {
 	    found = TRUE;
-	    tbyte = (*to == SJIS_StrtrDelByte) ? 0 : (*to != 0) ? 2 : 1;
+	    tbyte = (*to == SJIS_TransDelByte) ? 0 : (*to != 0) ? 2 : 1;
 	}
 
 	if(mod_c ^ found) cnt++;
@@ -1182,39 +1175,39 @@ strtr_light (src, table, mod = "")
 
 
 SV*
-strtr_mktable (search, replace, mod = "")
-    SV * search;
-    SV * replace;
-    char * mod;
+mktrans (search, replace, mod = &PL_sv_no)
+    SV *search;
+    SV *replace;
+    SV *mod;
   PROTOTYPE: $$;$
   PREINIT:
     SV *dst;
     bool mod_c, mod_d;
-    U8 *p, *d, *dend, *f, *fend, *t, *tend, *here;
-    STRLEN dbyte, fbyte, tbyte;
-    U8 idx = 0, fr[2], to[2], tolast[2];
+    U8 *p, *d, *dend, *f, *fend, *t, *tend, *m, *here;
+    STRLEN dbyte, fbyte, tbyte, modbyte;
+    U8 idx, fr[2], to[2], tolast[2];
   CODE:
     f = (U8*)SvPV(search,  fbyte);
     fend = f + fbyte;
     t = (U8*)SvPV(replace, tbyte);
     tend = t + tbyte;
 
-    tolast[0] = tolast[1] = SJIS_StrtrUndefByte;
+    tolast[0] = tolast[1] = SJIS_TransUndefByte;
     if (tbyte == 0) t = NULL;
 
-    mod_c = strchr(mod,'c') != NULL;
-    mod_d = strchr(mod,'d') != NULL;
+    m = (U8*)SvPV(mod, modbyte);
+    mod_c = memchr((void*)m, 'c', modbyte) != NULL;
+    mod_d = memchr((void*)m, 'd', modbyte) != NULL;
 
-    dbyte = SJIS_StrtrIndexPad;
-    dst = newSV(dbyte + 1);
+    dbyte = SJIS_TransIndexPad;
+    dst = newSV(dbyte);
     (void)SvPOK_only(dst);
     d = (U8*)SvPVX(dst);
 
-    p = d;
-    dend = d + SJIS_StrtrIndexPad;
-    while(p < dend) *p++ = SJIS_StrtrUndefByte;
+    for (p = d, dend = d + dbyte; p < dend; )
+	*p++ = SJIS_TransUndefByte;
 
-    while (f < fend) {
+    for (idx = 0; f < fend; ) {
 	if (isSJ2BTp(f,fend)) {
 	    *fr = *f++;
 	    f++;
@@ -1222,18 +1215,16 @@ strtr_mktable (search, replace, mod = "")
 	    *fr = 0;
 	    f++;
 	}
-	if (d[*fr] == SJIS_StrtrUndefByte) {
-	    dbyte += SJIS_StrtrBytesPerRow;
+	if (d[*fr] == SJIS_TransUndefByte) {
+	    dbyte += SJIS_TransBytesPerRow;
 	    d[*fr] = idx++;
 	}
     }
 
     d = (U8*)SvGROW(dst, dbyte + 1);
-    if (!d) croak("ShiftJIS::String Panic in strtr_mktable");
 
-    p = d + SJIS_StrtrIndexPad;
-    dend = d + dbyte;
-    while(p < dend) *p++ = SJIS_StrtrUndefByte;
+    for (p = d + SJIS_TransIndexPad, dend = d + dbyte; p < dend; )
+	*p++ = SJIS_TransUndefByte;
 
     f = (U8*)SvPVX(search);
 
@@ -1256,9 +1247,9 @@ strtr_mktable (search, replace, mod = "")
 	    }
 	}
 
-	here = strtr_tochar_ptr(d, fr[0], fr[1]);
+	here = trans_toptr(d, fr[0], fr[1]);
 
-	if (here && *here == SJIS_StrtrUndefByte) {
+	if (here && *here == SJIS_TransUndefByte) {
 	    if (tbyte) {
 		if (t) {
 		    here[0] = to[0];
@@ -1267,14 +1258,14 @@ strtr_mktable (search, replace, mod = "")
 		    here[0] = tolast[0];
 		    here[1] = tolast[1];
 		} else {
-		    here[0] = here[1] = SJIS_StrtrDelByte;
+		    here[0] = here[1] = SJIS_TransDelByte;
 		}
 	    } else {
 		if (!mod_d || mod_c) {
 		    here[0] = fr[0];
 		    here[1] = fr[1];
 		} else {
-		    here[0] = here[1] = SJIS_StrtrDelByte;
+		    here[0] = here[1] = SJIS_TransDelByte;
 		}
 	    }
 	}
@@ -1295,15 +1286,12 @@ strtr_mktable (search, replace, mod = "")
 	    tolast[1] = *t++;
 	}
     }
-
-    d[SJIS_StrtrIndexPad - 2] = tolast[0];
-    d[SJIS_StrtrIndexPad - 1] = tolast[1];
-
+    d[SJIS_TransIndexPad - 2] = tolast[0];
+    d[SJIS_TransIndexPad - 1] = tolast[1];
     SvCUR_set(dst, dbyte);
     RETVAL = dst;
   OUTPUT:
     RETVAL
-
 
 
 void
@@ -1313,11 +1301,10 @@ strsplit (separator, src, lim = 0)
     I32 lim;
   PROTOTYPE: $$;$
   PREINIT:
-    U8 *s, *e, *p, *sep, *anchor, *last;
-    STRLEN byte, sepbyte;
+    U8 *s, *e, *p, *sep, *anc, *last;
+    STRLEN byte, sepbyte, ch;
     bool wantarray;
     I32 cnt = 0;
-    int ch  = 0;
   PPCODE:
     wantarray = (GIMME_V == G_ARRAY);
 
@@ -1335,28 +1322,28 @@ strsplit (separator, src, lim = 0)
 	    if (!isSJ_SPACEpc(p,ch)) break;
 	}
 
-	for (anchor = p; (lim <= 0 || cnt < lim - 1) && p < e; p += ch) {
+	for (anc = p; (lim <= 0 || cnt < lim - 1) && p < e; p += ch) {
 	    ch = isSJ2BTp(p,e) ? 2 : 1;
 	    if (isSJ_SPACEpc(p,ch)) {
-		if (anchor != p) {
+		if (anc != p) {
 		    ++cnt;
 		    if (wantarray)
-			XPUSHs(sv_2mortal(newSVpvn(anchor, p-anchor)));
+			XPUSHs(sv_2mortal(newSVpvn((char*)anc, p-anc)));
 		}
-		anchor = p + ch;
+		anc = p + ch;
 	    }
 	}
 
         for (; p < e; p += ch) {
 	    ch = isSJ2BTp(p,e) ? 2 : 1;
 	    if (!isSJ_SPACEpc(p,ch)) break;
-	    anchor = p + ch;
+	    anc = p + ch;
 	}
 
-	if (!(lim == 0 && e == anchor)) {
+	if (!(lim == 0 && e == anc)) {
 	    ++cnt;
 	    if (wantarray)
-		XPUSHs(sv_2mortal(newSVpvn(anchor, e-anchor)));
+		XPUSHs(sv_2mortal(newSVpvn((char*)anc, e-anc)));
 	}
 
 	if (!wantarray) XPUSHs(sv_2mortal(newSViv(cnt)));
@@ -1367,69 +1354,100 @@ strsplit (separator, src, lim = 0)
 
 	if (!sepbyte) { /* splitchar */
 	    if (wantarray)
-		EXTEND(SP, lim <= 0 ? (length(s,byte) + (lim < 0)) : lim);
+		EXTEND(SP, lim <= 0 ? length(s,byte) : lim);
 
-	    cnt = 0;
-	    p = s;
-	    e = s + byte;
-	    while ((lim <= 0 || cnt < lim - 1) && p < e) {
+	    for (p = s, e = s + byte, cnt = 0;
+	         (lim <= 0 || cnt < lim - 1) && p < e; )
+	    {
 		ch = isSJ2BTp(p,e) ? 2 : 1;
-		if (wantarray) PUSHs(sv_2mortal(newSVpvn(p,ch)));
+		if (wantarray) PUSHs(sv_2mortal(newSVpvn((char*)p,ch)));
 		p += ch, ++cnt;
 	    }
 	    if (p < e || lim < 0) {
 		++cnt;
-		if (wantarray) PUSHs(sv_2mortal(newSVpvn(p, e - p)));
+		if (wantarray) XPUSHs(sv_2mortal(newSVpvn((char*)p, e - p)));
 	    }
 	    if (!wantarray) XPUSHs(sv_2mortal(newSViv(cnt)));
 	} /* end splitchar */
 
 	else  { /* strsplit main */
-	    I32 i, numLastEmpty = 0;
+	    I32 numLastEmpty = 0;
 	    cnt = 0;
-	    p = anchor = s;
+	    p = anc = s;
 	    e = s + byte;
 
 	    if (sepbyte <= byte) {
-		last = e - (sepbyte - 1);/* sepbyte after p */
+		last = e - (sepbyte - 1); /* sepbyte after p */
 		while ((lim <= 0 || cnt < lim - 1) && p < last) {
 		    if (*p == *sep && (sepbyte == 1 || memEQ(p,sep,sepbyte))) {
-			if (lim == 0 && p == anchor) {
+			if (lim == 0 && p == anc) {
 			    ++numLastEmpty;
 			} else {
-			    for (i = 0; i < numLastEmpty; i++) {
-				++cnt;
+			    if (numLastEmpty) {
+				cnt += numLastEmpty;
 				if (wantarray)
-				    XPUSHs(sv_2mortal(newSVpvn("",0)));
+				    while (numLastEmpty--)
+					XPUSHs(sv_2mortal(newSVpvn("",0)));
+				numLastEmpty = 0;
 			    }
-			    numLastEmpty = 0;
 			    ++cnt;
 			    if (wantarray)
-				XPUSHs(sv_2mortal(newSVpvn(anchor, p-anchor)));
+				XPUSHs(sv_2mortal(newSVpvn((char*)anc,p-anc)));
 			}
 			p += sepbyte;
-			anchor = p;
+			anc = p;
 		    }
 		    else p += isSJ2BTp(p,e) ? 2 : 1;
 		} /* end-while */
 
-		if (numLastEmpty && !(lim == 0 && e == anchor)) {
-		    for (i = 0; i < numLastEmpty; i++) {
-		        ++cnt;
-			if (wantarray)
+		if (numLastEmpty && !(lim == 0 && e == anc)) {
+		    cnt += numLastEmpty;
+		    if (wantarray)
+			while (numLastEmpty--)
 			    XPUSHs(sv_2mortal(newSVpvn("",0)));
-		    }
+		    numLastEmpty = 0;
 		}
 	    } /* sepbyte <= byte */
 
-	    if (!(lim == 0 && e == anchor)) {
+	    if (!(lim == 0 && e == anc)) {
 		++cnt;
 		if (wantarray)
-		    XPUSHs(sv_2mortal(newSVpvn(anchor, e-anchor)));
+		    XPUSHs(sv_2mortal(newSVpvn((char*)anc, e - anc)));
 	    }
 	    if (!wantarray) XPUSHs(sv_2mortal(newSViv(cnt)));
 	} /* end strsplit main */
     } /* end other-than splitspace */
+
+
+
+SV*
+strxfrm(src)
+    SV * src
+  PROTOTYPE: $
+  PREINIT:
+    U8 *s, *p, *e, *d;
+    STRLEN byte;
+    SV *dst;
+  CODE:
+    s = (U8*)SvPV(src, byte);
+
+    dst = byte ? newSV(2 * byte) : newSVpvn("",0);
+    (void)SvPOK_only(dst);
+    d = (U8*)SvPVX(dst);
+
+    for (p = s, e = s + byte; p < e;) {
+	if (isSJ2BTp(p,e)) {
+	    *d++ = *p++;
+	    *d++ = *p++;
+	} else {
+	    *d++ = '\0';
+	    *d++ = *p++;
+	}
+    }
+    SvCUR_set(dst, d - (U8*)SvPVX(dst));
+    RETVAL = dst;
+  OUTPUT:
+    RETVAL
 
 
 SV*
@@ -1445,35 +1463,70 @@ strcmp (l_sv, r_sv)
     strGT = 5
     strGE = 6
   PREINIT:
-    U8 *sL, *sR;
+    U8 *sL, *sR, *eL, *eR, *pL, *pR;
     STRLEN lbyte, rbyte;
-    int rint;
+    IV rint, cL, cR, eq = 0;
   CODE:
     sL = (U8*)SvPV(l_sv, lbyte);
     sR = (U8*)SvPV(r_sv, rbyte);
-    rint = sjis_strcmp(sL, lbyte, sR, rbyte);
+
+    if (lbyte == rbyte)
+	eq = memEQ(sL, sR, lbyte);
+
+    if (ix == 1) /* EQ */
+	if (eq)  XSRETURN_YES; else XSRETURN_NO;
+    if (ix == 2) /* NE */
+	if (!eq) XSRETURN_YES; else XSRETURN_NO;
+
+    rint = 0;
+    if (!eq) {
+	eL = sL + lbyte;
+	eR = sR + rbyte;
+	cL = cR = 0;
+
+	for (pL = sL, pR = sR; pL < eL && pR < eR; pL += cL, pR += cR) {
+	    cL = isSJ2BTp(pL,eL) ? 2 : 1;
+	    cR = isSJ2BTp(pR,eR) ? 2 : 1;
+
+	    if ( cL !=  cR) {
+		rint = cL < cR ? -1 : 1;
+		break;
+	    } else if (*pL != *pR) {
+		rint = *pL < *pR ? -1 : 1;
+		break;
+	    } else if (cL > 1 && pL[1] != pR[1]) {
+		rint = pL[1] < pR[1] ? -1 : 1;
+		break;
+	    }
+	}
+	if (!rint) rint = pL != eL ? 1 : pR != eR ? -1 : 0;
+    }
     switch (ix) {
-	case 1: /* EQ */
+	case 0 : /* cmp */
+	    RETVAL = newSViv(rint);
+	    break;
+	case 1 : /* EQ */
 	    RETVAL = boolSV(rint == 0);
 	    break;
-	case 2: /* NE */
+	case 2 : /* NE */
 	    RETVAL = boolSV(rint != 0);
 	    break;
-	case 3: /* LT */
-	    RETVAL = boolSV(rint <  0);
+	case 3 : /* LT */
+	    RETVAL = boolSV(rint < 0);
 	    break;
-	case 4: /* LE */
+	case 4 : /* LE */
 	    RETVAL = boolSV(rint <= 0);
 	    break;
-	case 5: /* GT */
-	    RETVAL = boolSV(rint >  0);
+	case 5 : /* GT */
+	    RETVAL = boolSV(rint > 0);
 	    break;
-	case 6: /* GE */
+	case 6 : /* GE */
 	    RETVAL = boolSV(rint >= 0);
 	    break;
-        default:
-	    RETVAL = newSViv(rint < 0 ? -1 : rint > 0 ? 1 : 0);
+	default : /* oops */
+	    croak("ShiftJIS::String XS Panic switch in strcmp");
 	    break;
     }
   OUTPUT:
     RETVAL
+

@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '0.16';
+$VERSION = '0.17';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -15,7 +15,7 @@ require AutoLoader;
 %EXPORT_TAGS = (
     issjis => [ qw/issjis/ ],
     string => [ qw/length index rindex strspn strcspn strrev substr strsplit/],
-    cmp    => [ qw/strcmp strEQ strNE strLT strLE strGT strGE /],
+    cmp    => [ qw/strcmp strEQ strNE strLT strLE strGT strGE strxfrm/],
     ctype  => [ qw/toupper tolower/ ],
     tr     => [ qw/mkrange strtr trclosure/ ],
     kana   => [ qw/hi2ka ka2hi hiXka/ ],
@@ -24,7 +24,7 @@ require AutoLoader;
 );
 
 $EXPORT_TAGS{all}  = [ map @$_, values %EXPORT_TAGS ];
-$EXPORT_TAGS{core} = [ map @$_, @EXPORT_TAGS{ qw/issjis string cmp ctype tr/ } ];
+$EXPORT_TAGS{core} = [ map @$_, @EXPORT_TAGS{qw/issjis string cmp ctype tr/} ];
 
 @EXPORT_OK = @{ $EXPORT_TAGS{all} };
 @EXPORT = ();
@@ -81,10 +81,10 @@ sub trclosure($$;$$$) {
 	    $fr = mkrange($fr, $r);
 	    $to = mkrange($to, $r);
 	}
-	my $table = strtr_mktable($fr, $to, $mod);
+	my $trans = mktrans($fr, $to, $mod);
 	return sub {
 	    my $src = shift;
-	    strtr_light($src, $table, $mod);
+	    strtr_light($src, $trans, $mod);
 	};
     }
 

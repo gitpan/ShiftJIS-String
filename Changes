@@ -1,5 +1,9 @@
 Revision history for Perl module ShiftJIS::String.
 
+0.17  Sat Jan 05 15:23:18 2002
+    - add strxfrm.
+    - modify internal of strcmp and other comparison functions.
+
 0.16  Wed Jan 02 13:25:02 2002
     - add strsplit; strcmp and strEQ, strNE, strLT, strLE, strGT, strGE.
 

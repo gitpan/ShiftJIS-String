@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '0.16';
+$VERSION = '0.17';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -13,7 +13,7 @@ require Exporter;
 %EXPORT_TAGS = (
     issjis => [ qw/issjis/ ],
     string => [ qw/length index rindex strspn strcspn strrev substr strsplit/],
-    cmp    => [ qw/strcmp strEQ strNE strLT strLE strGT strGE /],
+    cmp    => [ qw/strcmp strEQ strNE strLT strLE strGT strGE strxfrm/],
     ctype  => [ qw/toupper tolower/ ],
     tr     => [ qw/mkrange strtr trclosure/ ],
     kana   => [ qw/hi2ka ka2hi hiXka/ ],
@@ -22,7 +22,7 @@ require Exporter;
 );
 
 $EXPORT_TAGS{all}  = [ map @$_, values %EXPORT_TAGS ];
-$EXPORT_TAGS{core} = [ map @$_, @EXPORT_TAGS{ qw/issjis string cmp ctype tr/ } ];
+$EXPORT_TAGS{core} = [ map @$_, @EXPORT_TAGS{qw/issjis string cmp ctype tr/} ];
 
 @EXPORT_OK = @{ $EXPORT_TAGS{all} };
 @EXPORT = ();
@@ -300,7 +300,7 @@ sub trclosure($$;$$$)
 }
 
 
-sub vidualize_char($) { # for err-msg
+sub sjis_display ($) { # for err-msg
     my $c = shift;
     $c == 0 ? '\0' :
     $c < 0x20 || $c == 0x7F ? sprintf("\\x%02x", $c) :
@@ -317,7 +317,7 @@ sub __expand {
 	if($rev){ ($fr,$to) = ($to,$fr) }
 	else {
 	    croak sprintf "$PACKAGE Invalid character range %s-%s",
-		vidualize_char($fr), vidualize_char($to);
+		sjis_display($fr), sjis_display($to);
 	}
     } else { $rev = 0 }
     if ($fr <= 0x7F) {
@@ -525,33 +525,22 @@ sub strsplit ($$;$) {
     return @ret;
 }
 
-
 ##
-## strcmp
+## strxfrm
 ##
-sub strcmp ($$) {
-    my $strL = shift;
-    my $strR = shift;
-
-    while (CORE::length $strL && CORE::length $strR) {
-	croak("$PACKAGE Panic in strcmp") unless $strL =~ s/^($Char)//o;
-	my $chL = $1;
-	croak("$PACKAGE Panic in strcmp") unless $strR =~ s/^($Char)//o;
-	my $chR = $1;
-
-	return CORE::length $chL <=> CORE::length $chR
-	    if CORE::length $chL !=  CORE::length $chR;
-	return $chL cmp $chR if $chL ne $chR;
-    }
-    return CORE::length $strL <=> CORE::length $strR;
+sub strxfrm ($) {
+  my $str = shift;
+  $str =~ s/($Char)/ CORE::length $1 > 1 ? $1 : "\0".$1 /ge;
+  return $str;
 }
 
-sub strEQ ($$) { strcmp($_[0], $_[1]) == 0 }
-sub strNE ($$) { strcmp($_[0], $_[1]) != 0 }
-sub strLT ($$) { strcmp($_[0], $_[1]) <  0 }
-sub strLE ($$) { strcmp($_[0], $_[1]) <= 0 }
-sub strGT ($$) { strcmp($_[0], $_[1]) >  0 }
-sub strGE ($$) { strcmp($_[0], $_[1]) >= 0 }
+sub strcmp($$) { $_[0] eq $_[1] ? 0  : strxfrm($_[0]) cmp strxfrm($_[1]) }
+sub strEQ ($$) { $_[0] eq $_[1] }
+sub strNE ($$) { $_[0] ne $_[1] }
+sub strLT ($$) { $_[0] eq $_[1] ? '' : strxfrm($_[0]) lt strxfrm($_[1]) }
+sub strLE ($$) { $_[0] eq $_[1] ? 1  : strxfrm($_[0]) le strxfrm($_[1]) }
+sub strGT ($$) { $_[0] eq $_[1] ? '' : strxfrm($_[0]) gt strxfrm($_[1]) }
+sub strGE ($$) { $_[0] eq $_[1] ? 1  : strxfrm($_[0]) ge strxfrm($_[1]) }
 
 1;
 

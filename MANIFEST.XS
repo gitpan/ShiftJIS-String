@@ -15,6 +15,7 @@ t/length.t
 t/long.t
 t/mkrange.t
 t/strcmp.t
+t/strxfrm.t
 t/strsplit.t
 t/subst.t
 t/substr.t
