@@ -1,0 +1,16 @@
+Revision history for Perl extension ShiftJIS::String.
+
+0.05  Mon Jun  4 23:15:12 2001
+    - make ./t/*.t files.
+
+0.04  Sat May 12 15:44:25 2001
+    - deprecate split() and related functions. use ShiftJIS::Regexp.
+
+0.03  Sun May  6 23:52:02 2001
+    - bug fix about double byte characters in the pattern fot split().
+
+0.02  Sun May  6 19:18:58 2001
+    - spaceH2Z() and spaceZ2H().
+
+0.01  Sat May  5 09:39:40 2001
+    - original version; created by h2xs 1.19
