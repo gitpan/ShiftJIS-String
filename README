@@ -1,4 +1,4 @@
-A version 0.10
+A version 0.11
 ==============
 
 NAME
@@ -28,11 +28,28 @@ To install this module type the following:
    make test
    make install
 
+If you have a C compiler and want to use the XS version,
+type the following:
+
+   perl Makefile.PL xs
+   make
+   make test
+   make install
+
+If you decide to install the NoXS version after trying to build the XS,
+type the following:
+
+   make clean
+   perl Makefile.PL noxs
+   make
+   make test
+   make install
+
 PREREQUISITES
 
-Perl 5.003 or later.
+Perl 5.003 or later (Non-XS version).
 
-Carp, Exporter, strict, vars.
+Perl 5.6 or later (XS version).
 
 COPYRIGHT AND LICENCE
 

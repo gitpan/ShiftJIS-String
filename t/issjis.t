@@ -6,7 +6,7 @@
 BEGIN { $| = 1; print "1..16\n"; }
 END {print "not ok 1\n" unless $loaded;}
 
-use ShiftJIS::String;
+use ShiftJIS::String qw(issjis);
 $^W = 1;
 $loaded = 1;
 print "ok 1\n";
@@ -25,9 +25,7 @@ print "ok 1\n";
 	" ",
 	'Å@',
   ){
-     print ShiftJIS::String::issjis($_)
-       ? "ok" : "not ok";
-     print " ", ++$n, "\n";
+     print issjis($_) ? "ok" : "not ok", " ", ++$n, "\n";
   }
   for(
 	"ÇªÇÍÇ‡ÇªÇ§Çæ\x8080",
@@ -36,12 +34,8 @@ print "ok 1\n";
 	"\xaf\xe2",
 	"Ç±ÇÍÇÕ\xFFÇ«Ç§Ç©Ç»",
   ){
-     print ! ShiftJIS::String::issjis($_)
-	? "ok" : "not ok";
-     print " ", ++$n, "\n";
+     print ! issjis($_) ? "ok" : "not ok", " ", ++$n, "\n";
   }
-  print ShiftJIS::String::issjis("Ç†", "P", "", "∂›ºﬁ test")
-	? "ok 15\n" : "not ok 15\n";
-  print ! ShiftJIS::String::issjis("ì˙ñ{","Ç≥kanji","\xA0")
-	? "ok 16\n" : "not ok 16\n";
+  print  issjis("Ç†", "P", "", "∂›ºﬁ test") ? "ok" : "not ok", " ", ++$n, "\n";
+  print !issjis("ì˙ñ{","Ç≥kanji","\xA0") ? "ok" : "not ok", " ", ++$n, "\n";
 }

@@ -1,5 +1,10 @@
 Revision history for Perl module ShiftJIS::String.
 
+0.11  Sun Dec 23 12:20:47 2001
+    - an XS version and a Non-XS version are in the package.
+    - reverse character ranges without confirmation (by a true 2nd argument
+      for mkrange() or 'r' modifier for trclosure(), strtr()) are croaked.
+
 0.10  Sat Oct 06 11:38:08 2001
     - improvement of internal.
 

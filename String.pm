@@ -4,39 +4,36 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '0.10';
+$VERSION = '0.11';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
 @ISA = qw(Exporter);
 
-my @Core = qw/issjis length strrev toupper tolower index rindex strspn strcspn
-  substr mkrange strtr trclosure/;
-my @Kana = qw/hi2ka ka2hi hiXka/;
-my @H2Z  = qw/kataH2Z kanaH2Z spaceH2Z/;
-my @Z2H  = qw/kataZ2H kanaZ2H spaceZ2H/;
-
 %EXPORT_TAGS = (
-   core => \@Core,
-   kana => \@Kana,
-   H2Z  => \@H2Z,
-   Z2H  => \@Z2H,
-   all  => [@Core, @Kana, @H2Z, @Z2H],
+    'issjis' => [ qw/issjis/ ],
+    'string' => [ qw/length index rindex strspn strcspn strrev substr/ ],
+    'ctype'  => [ qw/toupper tolower/ ],
+    'tr'     => [ qw/mkrange strtr trclosure/ ],
+    'kana'   => [ qw/hi2ka ka2hi hiXka/ ],
+    'H2Z'    => [ qw/kataH2Z kanaH2Z spaceH2Z/ ],
+    'Z2H'    => [ qw/kataZ2H kanaZ2H spaceZ2H/ ],
 );
+
+$EXPORT_TAGS{all}  = [ map @$_, values %EXPORT_TAGS ];
+$EXPORT_TAGS{core} = [ map @$_, @EXPORT_TAGS{ qw/issjis string ctype tr/ } ];
 
 @EXPORT_OK = @{ $EXPORT_TAGS{all} };
 @EXPORT = ();
 
 my $Char = '(?:[\x81-\x9F\xE0-\xFC][\x00-\xFF]|[\x00-\xFF])';
-my $Apad = '(?:\A|[^\x81-\x9F\xE0-\xFC])(?:[\x81-\x9F\xE0-\xFC]{2})*?';
-my $Gpad = '(?:\G|[^\x81-\x9F\xE0-\xFC])(?:[\x81-\x9F\xE0-\xFC]{2})*?';
 
 ##
 ## issjis(LIST)
 ##
 sub issjis
 {
-  for (@_){
+  for (@_) {
     my $str = $_;
     $str =~ s/[\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]//g;
     return '' if CORE::length($str);
@@ -47,8 +44,7 @@ sub issjis
 ##
 ## length(STRING)
 ##
-sub length($)
-{
+sub length($) {
   my $str = shift;
   return 0 + $str =~ s/$Char//go;
 }
@@ -56,13 +52,10 @@ sub length($)
 ##
 ## strrev(STRING)
 ## 
-sub strrev($)
-{
+sub strrev($) {
   my $str = shift;
-  join '', reverse _splitchar($str);
+  join '', reverse $str =~ /$Char/go;
 }
-
-sub _splitchar($){ $_[0] =~ /$Char/go }
 
 ##
 ## index(STRING, SUBSTR; POSITION)
@@ -70,13 +63,13 @@ sub _splitchar($){ $_[0] =~ /$Char/go }
 sub index($$;$)
 {
   my $cnt = 0;
-  my($str,$sub) = @_;
+  my($str, $sub) = @_;
   my $len = &length($str);
   my $pos = @_ == 3 ? $_[2] : 0;
-  if($sub eq ""){
+  if ($sub eq "") {
     return $pos <= 0 ? 0 : $len <= $pos ? $len : $pos;
   }
-  return -1 if $pos > $len;
+  return -1 if $len < $pos;
   my $pat = quotemeta($sub);
   $str =~ s/^$Char//o ? $cnt++ : croak
     while CORE::length($str) && $cnt < $pos;
@@ -91,16 +84,16 @@ sub index($$;$)
 sub rindex($$;$)
 {
   my $cnt = 0;
-  my($str,$sub) = @_;
+  my($str, $sub) = @_;
   my $len = &length($str);
   my $pos = @_ == 3 ? $_[2] : $len;
-  if($sub eq ""){
+  if ($sub eq "") {
     return $pos <= 0 ? 0 : $len <= $pos ? $len : $pos;
   }
   return -1 if $pos < 0;
   my $pat = quotemeta($sub);
   my $ret = -1;
-  while($cnt <= $pos && CORE::length($str)){
+  while ($cnt <= $pos && CORE::length($str)) {
     $ret = $cnt if $str =~ /^$pat/;
     $str =~ s/^$Char//o ? $cnt++ : croak;
   }
@@ -116,7 +109,7 @@ sub strspn($$)
   my $ret = 0;
   my(%lst);
   @lst{ $lst=~ /$Char/go } = ();
-  while($str =~ /($Char)/go){
+  while ($str =~ /($Char)/go) {
     last if ! exists $lst{$1};
     $ret++;
   }
@@ -132,7 +125,7 @@ sub strcspn($$)
   my $ret = 0;
   my(%lst);
   @lst{ $lst=~ /$Char/go } = ();
-  while($str =~ /($Char)/go){
+  while ($str =~ /($Char)/go) {
     last if exists $lst{$1};
     $ret++;
   }
@@ -151,13 +144,15 @@ sub substr($$;$$)
 
   my $slen = &length($str);
   $except = 1 if $slen < $off;
-  if(@_ == 2){$len = $slen - $off;}
+  if (@_ == 2) {$len = $slen - $off }
   else {
     $except = 1 if $off + $slen < 0 && $len + $slen < 0;
     $except = 1 if 0 <= $len && $off + $len + $slen < 0;
   }
-  if($except){
-    if(@_ > 3){croak "$PACKAGE: substr outside of string"} else {return}
+  if ($except) {
+    if (@_ > 3) {
+      croak "$PACKAGE outside of string in substr";
+    } else { return }
   }
   $ini = $off < 0 ? $slen + $off : $off;
   $fin = $len < 0 ? $slen + $len : $ini + $len;
@@ -169,13 +164,13 @@ sub substr($$;$$)
   my $cnt  = 0;
   my $plen = 0;
   my $clen = 0;
-  while($str =~ /($Char)/go){
+  while ($str =~ /($Char)/go) {
     if   ($cnt < $ini) { $plen += CORE::length($1) }
     elsif($cnt < $fin) { $clen += CORE::length($1) }
     else               { last }
     $cnt++;
   }
-  if(@_ > 3){
+  if (@_ > 3) {
     $_[0] = CORE::substr($str, 0,      $plen) .$rep.
             CORE::substr($str, $plen + $clen);
   }
@@ -191,17 +186,13 @@ my %Cache;
 
 sub strtr($$$;$$$)
 {
-  my $str = shift;
-  my $coderef;
-  if(defined $_[2] && $_[2] =~ /o/){
-    my $k = join "\xFF", @_;
-    $coderef = ($Cache{$k} ||= trclosure(@_) );
-  }
-  else {
-    $coderef = trclosure(@_);
-  }
-  &$coderef($str);
+    my $str = shift;
+    my $coderef = (defined $_[2] && $_[2] =~ /o/) 
+	? ( $Cache{ join "\xFF", @_ } ||= trclosure(@_) )
+	: trclosure(@_);
+    &$coderef($str);
 }
+
 
 ##
 ## trclosure(SEARCHLIST, REPLACEMENTLIST; MODIFIER, PATTERN, TOPATTERN)
@@ -214,7 +205,7 @@ sub trclosure($$;$$$)
   $r = defined $mod && $mod =~ /r/;
   $R = defined $mod && $mod =~ /R/;
 
-  if(ref $fr){
+  if (ref $fr) {
     @fr = @$fr;
     $re = defined $re ? "$re|$Char" :
        join('|', map(quotemeta($_), @$fr), $Char);
@@ -223,7 +214,7 @@ sub trclosure($$;$$$)
     $re = defined $re ? "$re|$Char" : $Char;
     @fr = $fr =~ /\G$re/g;
   }
-  if(ref $to){
+  if (ref $to) {
     @to = @$to;
     $tore = defined $tore ? "$tore|$Char" :
        join('|', map(quotemeta($_), @$to), $Char);
@@ -238,7 +229,7 @@ sub trclosure($$;$$$)
   $s = defined $mod && $mod =~ /s/;
   $mod = $s * 4 + $d * 2 + $c;
 
-  for($i = 0; $i < @fr; $i++){
+  for ($i = 0; $i < @fr; $i++) {
     next if exists $hash{ $fr[$i] };
     $hash{ $fr[$i] } =
     @to ? defined $to[$i] ? $to[$i] : $d ? '' : $to[-1]
@@ -298,7 +289,7 @@ sub trclosure($$;$$$)
         }ge;
         ref $str ? $cnt : $str;
       } :
-    sub { croak "$PACKAGE: trclosure Error! Invalid Closure!\n" }
+    sub { croak "$PACKAGE Panic! Invalid closure in trclosure!\n" }
 }
 
 ##
@@ -310,7 +301,7 @@ sub mkrange($;$)
   my($self,$rev) = @_;
   $self =~ s/^-/\\-/;
   $range = 0;
-  foreach $s ($self =~ /\G(?:\\\\|\\-|$Char)/go){
+  foreach $s ($self =~ /\G(?:\\\\|\\-|$Char)/go) {
     if($range){
       if   ($s eq '\\-') {$s = '-'}
       elsif($s eq '\\\\'){$s = '\\'}
@@ -318,15 +309,14 @@ sub mkrange($;$)
       $max = __ord($s);
       push @retv, __expand($min,$max,$rev);
       $range = 0;
-    }
-    else {
+    } else {
       if($s eq '-'){$range = 1}
       elsif($s eq '\\-') {push @retv, '-' }
       elsif($s eq '\\\\'){push @retv, '\\'}
       else		 {push @retv, $s }
     }
   }
-  if($range) {push @retv, '-' }
+  push @retv, '-' if $range;
   wantarray ? @retv : @retv ? join('', @retv) : '';
 }
 
@@ -336,50 +326,63 @@ sub __ord($)
   CORE::length($c) > 1 ? unpack('n', $c) : ord($c);
 }
 
+sub vidualize_char($) # for err-msg
+{
+  my $c = shift;
+  $c == 0 ? '\0' :
+  $c < 0x20 || $c == 0x7F ? sprintf("\\x%02x", $c) :
+  $c > 0xFF ? pack('n', $c) : chr($c);
+}
+
+
 sub __expand
 {
   my($ini, $fin, $i, $ch, @retv);
   my($fin_f,$fin_t,$ini_f,$ini_t);
   my($fr, $to, $rev) = @_;
-  if($fr > $to){ if($rev){($fr,$to) = ($to,$fr)} else {return} }
-  else {$rev = 0}
-  if($fr <= 0x7F){
+  if ($fr > $to) {
+    if($rev){ ($fr,$to) = ($to,$fr) }
+    else {
+      croak sprintf "$PACKAGE Invalid character range %s-%s",
+	vidualize_char($fr), vidualize_char($to);
+    }
+  } else { $rev = 0 }
+  if ($fr <= 0x7F) {
     $ini = $fr < 0x00 ? 0x00 : $fr;
     $fin = $to > 0x7F ? 0x7F : $to;
-    for($i = $ini; $i <= $fin; $i++){push @retv, chr($i)}
+    for ($i = $ini; $i <= $fin; $i++) { push @retv, chr($i) }
   }
-  if($fr <= 0xDF){
+  if ($fr <= 0xDF) {
     $ini = $fr < 0xA1 ? 0xA1 : $fr;
     $fin = $to > 0xDF ? 0xDF : $to;
-    for($i = $ini; $i <= $fin; $i++){push @retv, chr($i)}
+    for ($i = $ini; $i <= $fin; $i++) { push @retv, chr($i) }
   }
   $ini = $fr < 0x8140 ? 0x8140 : $fr;
   $fin = $to > 0xFCFC ? 0xFCFC : $to;
-  if($ini <= $fin){
+  if ($ini <= $fin) {
     ($ini_f,$ini_t) = unpack 'C*', pack 'n', $ini;
     ($fin_f,$fin_t) = unpack 'C*', pack 'n', $fin;
     $ini_t = 0x40 if $ini_t < 0x40;
     $fin_t = 0xFC if $fin_t > 0xFC;
-    if($ini_f == $fin_f){
+    if ($ini_f == $fin_f) {
       $ch = chr $ini_f;
-      for($i = $ini_t; $i <= $fin_t; $i++){
+      for ($i = $ini_t; $i <= $fin_t; $i++) {
         next if $i == 0x7F;
         push @retv, $ch.chr($i);
       }
-    }
-    else {
+    } else {
       $ch = chr($ini_f);
-      for($i = $ini_t; $i <= 0xFC; $i++){
+      for ($i = $ini_t; $i <= 0xFC; $i++) {
         next if $i == 0x7F;
         push @retv, $ch.chr($i);
       }
-      for($i = $ini_f+1; $i < $fin_f; $i++){
+      for ($i = $ini_f+1; $i < $fin_f; $i++) {
         next if 0xA0 <= $i && $i <= 0xDF;
         $ch = chr($i);
         push @retv, map $ch.chr, 0x40..0x7E, 0x80..0xFC;
       }
       $ch = chr($fin_f);
-      for($i = 0x40; $i <=  $fin_t; $i++){
+      for ($i = 0x40; $i <=  $fin_t; $i++) {
         next if $i == 0x7F;
         push @retv, $ch.chr($i);
       }
@@ -410,23 +413,6 @@ my $tolower  = trclosure('A-Z', 'a-z');
 sub spaceZ2H($) { &$spaceZ2H(@_) }
 sub toupper($)  { &$toupper(@_) }
 sub tolower($)  { &$tolower(@_) }
-
-sub _spaceZ2H($) {
-  my $str = shift;
-  my $len = CORE::length(ref $str ? $$str : $str);
-  (ref $str ? $$str : $str) =~ s/($Gpad)\x81\x40/$1 /go;
-  ref $str ? abs($len - CORE::length $$str) : $str;
-};
-sub _toupper($) {
-  my $str = shift;
-  $str =~ s/($Gpad)([a-z]+)/$1\U$2/go;
-  return $str;
-}
-sub _tolower($) {
-  my $str = shift;
-  $str =~ s/($Gpad)([A-Z]+)/$1\L$2/go;
-  return $str;
-}
 
 ##
 ## Kana Letters
@@ -484,494 +470,3 @@ sub ka2hi   ($) { &$ka2hi(@_) }
 
 1;
 __END__
-
-=head1 NAME
-
-ShiftJIS::String - functions to manipulate Shift_JIS encoded strings
-
-=head1 SYNOPSIS
-
-  use ShiftJIS::String;
-
-  ShiftJIS::String::substr($str, ShiftJIS::String::index($str, $substr));
-
-=head1 DESCRIPTION
-
-This module provides some functions which emulate
-the corresponding C<CORE> functions and helps someone 
-to manipulate multiple-byte character sequences in Shift_JIS encoding.
-
-* 'Hankaku' and 'Zenkaku' mean 'halfwidth' and 'fullwidth' characters 
-in Japanese, respectively. 
-
-=head1 FUNCTIONS
-
-=head2 Check Whether the String is Legal
-
-=over 4
-
-=item C<issjis(LIST)>
-
-Returns a boolean indicating whether all the strings in the parameter list
-are legally encoded in Shift_JIS.
-
-=back
-
-=head2 Length
-
-=over 4
-
-=item C<length(STRING)>
-
-Returns the length in characters of the supplied string.
-
-=back
-
-=head2 Reverse
-
-=over 4
-
-=item C<strrev(STRING)>
-
-Returns a reversed string.
-
-=back
-
-=head2 Case of the Alphabet
-
-=over 4
-
-=item C<toupper(STRING)>
-
-Returns an uppercased string of C<STRING>.
-Alters only half-width Latin characters C<a-z>.
-
-=item C<tolower(STRING)>
-
-Returns a lowercased string of C<STRING>.
-Alters only half-width Latin characters C<A-Z>.
-
-=back
-
-=head2 Search
-
-=over 4
-
-=item C<index(STRING, SUBSTR)>
-
-=item C<index(STRING, SUBSTR, POSITION)>
-
-Returns the position of the first occurrence
-of C<SUBSTR> in C<STRING> at or after C<POSITION>.
-If C<POSITION> is omitted, starts searching 
-from the beginning of the string. 
-
-If the substring is not found, returns -1. 
-
-=item C<rindex(STRING, SUBSTR)>
-
-=item C<rindex(STRING, SUBSTR, POSITION)>
-
-Returns the position of the last occurrence 
-of C<SUBSTR> in C<STRING> at or after C<POSITION>.
-If C<POSITION> is specified, returns the last 
-occurrence at or before that position. 
-
-If the substring is not found, returns -1. 
-
-=item C<strspn(STRING, SEARCHLIST)>
-
-Returns returns the position of the first occurrence of 
-any character not contained in the search list.
-
-  strspn("+0.12345*12", "+-.0123456789");
-  # returns 8. 
-
-If the specified string does not contain any character
-in the search list, returns 0.
-
-The string consists of characters in the search list, 
-the returned value equals the length of the string.
-
-=item C<strcspn(STRING, SEARCHLIST)>
-
-Returns returns the position of the first occurrence of 
-any character contained in the search list.
-
-  strcspn("Perlは面白い。", "赤青黄白黒");
-  # returns 6. 
-
-If the specified string does not contain any character
-in the search list,
-the returned value equals the length of the string.
-
-=back
-
-=head2 Substring
-
-=over 4
-
-=item C<substr(STRING or SCALAR REF, OFFSET)>
-
-=item C<substr(STRING or SCALAR REF, OFFSET, LENGTH)>
-
-=item C<substr(SCALAR, OFFSET, LENGTH, REPLACEMENT)>
-
-It works like C<CORE::substr>, but
-using character semantics of Shift_JIS encoding.
-
-If the C<REPLACEMENT> as the fourth parameter is specified, replaces
-parts of the C<SCALAR> and returns what was there before.
-
-You can utilize the lvalue reference,
-returned if a reference of scalar variable is used as the first argument.
-
-    ${ &substr(\$str,$off,$len) } = $replace;
-
-        works like
-
-    CORE::substr($str,$off,$len) = $replace;
-
-The returned lvalue is not Shift_JIS-oriented but byte-oriented,
-then successive assignment may cause unexpected results.
-
-    $str = "0123456789";
-    $lval  = &substr(\$str,3,1);
-    $$lval = "あい";
-    $$lval = "a";
-    # $str is NOT "012aい456789", but an illegal string "012a\xA0い456789".
-
-=back
-
-=head2 Character Range
-
-=over 4
-
-=item C<mkrange(EXPR, EXPR)>
-
-Returns the character list (not in list context, as a concatenated string)
-gained by parsing the specified character range.
-
-A character range is specified with a HYPHEN-MINUS, C<'-'>. The backslashed 
-combinations C<'\-'> and C<'\\'> are used instead of the characters
-C<'-'> and C<'\'>, respectively. The hyphen at the beginning or 
-end of the range is also evaluated as the hyphen itself.
-
-For example, C<mkrange('+\-0-9a-fA-F')> returns
-C<('+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F')>
-and C<scalar mkrange('か-ご')> returns C<'かがきぎくぐけげこご'>.
-
-The order of Shift_JIS characters is:
-  C<0x00 .. 0x7F, 0xA1 .. 0xDF, 0x8140 .. 0x9FFC, 0xE040 .. 0xFCFC>.
-So, mkrange('亜-腕') returns the list of all characters in level 1 Kanji.
-
-If true value is specified as the second parameter,
-allows to use reverse character ranges such as C<'9-0'>, C<'Z-A'>.
-
-=back
-
-=head2 Transliteration
-
-=over 4
-
-=item C<strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST)>
-
-=item C<strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST, MODIFIER)>
-
-=item C<strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST, MODIFIER, PATTERN)>
-
-=item C<strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST, MODIFIER, PATTERN, TOPATTERN)>
-
-Transliterates all occurrences of the characters found in the search list
-with the corresponding character in the replacement list. 
-
-If a reference of scalar variable is specified as the first argument,
-returns the number of characters replaced or deleted;
-otherwise, returns the transliterated string and
-the specified string is unaffected.
-
-  $str = "なんといおうか";
-  print strtr(\$str,"あいうえお", "アイウエオ"), "  ", $str;
-  # output: 3  なんとイオウか
-
-  $str = "後門の狼。";
-  print strtr($str,"後狼。", "前虎、"), $str;
-  # output: 前門の虎、後門の狼。
-
-B<SEARCHLIST and REPLACEMENTLIST>
-
-Character ranges such as C<"ぁ-お"> (internally utilizing C<mkrange()>)
-are supported.
-
-If the C<REPLACEMENTLIST> is empty (specified as C<''>, not C<undef>,
-because the use of uninitialized value causes warning under -w option),
-the C<SEARCHLIST> is replicated. 
-
-If the replacement list is shorter than the search list,
-the final character in the replacement list
-is replicated till it is long enough
-(but differently works when the 'd' modifier is used).
-
-  strtr(\$str, 'ぁ-んァ-ヶｦ-ﾟ', '#');
-    # replaces all Kana letters by '#'. 
-
-B<MODIFIER>
-
-    c   Complement the SEARCHLIST.
-    d   Delete found but unreplaced characters.
-    s   Squash duplicate replaced characters.
-    R   No use of character ranges.
-    r   Allows to use reverse character ranges.
-    o   Caches the conversion table internally.
-
-  strtr(\$str, 'ぁ-んァ-ヶｦ-ﾟ', '');
-    # counts all Kana letters in $str. 
-
-  $onlykana = strtr($str, 'ぁ-んァ-ヶｦ-ﾟ', '', 'cd');
-    # deletes all characters except Kana. 
-
-  strtr(\$str, " \x81\x40\n\r\t\f", '', 'd');
-    # deletes all whitespace characters including full-width space
-
-  strtr("おかかうめぼし　ちちとはは", 'ぁ-ん', '', 's');
-    # output: おかうめぼし　ちとは
-
-  strtr("条件演算子の使いすぎは見苦しい", 'ぁ-ん', '＃', 'cs');
-    # output: ＃の＃いすぎは＃しい
-
-If C<'R'> modifier is specified, C<'-'> is not evaluated as a meta character
-but hyphen itself like in C<tr'''>. Compare:
-
-  strtr("90 - 32 = 58", "0-9", "A-J");
-    # output: "JA - DC = FI"
-
-  strtr("90 - 32 = 58", "0-9", "A-J", "R");
-    # output: "JA - 32 = 58"
-    # cf. ($str = "90 - 32 = 58") =~ tr'0-9'A-J';
-    # '0' to 'A', '-' to '-', and '9' to 'J'.
-
-If C<'r'> modifier is specified, you are allowed to use reverse
-character ranges. For example, C<strtr($str, "0-9", "9-0", "r")>
-is identical to C<strtr($str, "0123456789", "9876543210")>.
-
-  strtr($text, '亜-腕', '腕-亜', "r");
-    # Your text may seem to be clobbered.
-
-B<PATTERN and TOPATTERN>
-
-By use of C<PATTERN> and C<TOPATTERN>, you can transliterate the string
-using lists containing some multi-character substrings.
-
-If called with four arguments, C<SEARCHLIST>, C<REPLACEMENTLIST>
-and C<STRING> are splited characterwise;
-
-If called with five arguments, a multi-character substring
-that matchs C<PATTERN> in C<SEARCHLIST>, C<REPLACEMENTLIST> or C<STRING>
-is regarded as an transliteration unit.
-
-If both C<PATTERN> and C<TOPATTERN> are specified,
-a multi-character substring 
-either that matchs C<PATTERN> in C<SEARCHLIST> or C<STRING>,
-or that matchs C<TOPATTERN> in C<REPLACEMENTLIST>
-is regarded as an transliteration unit.
-
-  print strtr(
-    "Caesar Aether Goethe", 
-    "aeoeueAeOeUe", 
-    "&auml;&ouml;&ouml;&Auml;&Ouml;&Uuml;", 
-    "", 
-    "[aouAOU]e",
-    "&[aouAOU]uml;");
-
-  # output: C&auml;sar &Auml;ther G&ouml;the
-
-B<LIST as Anonymous Array>
-
-Instead of specification of C<PATTERN> and C<TOPATTERN>, you can use 
-anonymous arrays as C<SEARCHLIST> and/or C<REPLACEMENTLIST> as follows.
-
-  print strtr(
-    "Caesar Aether Goethe", 
-    [qw/ae oe ue Ae Oe Ue/], 
-    [qw/&auml; &ouml; &ouml; &Auml; &Ouml; &Uuml;/]
-  );
-
-B<Caching the conversion table>
-
-If C<'o'> modifier is specified, the conversion table is cached internally.
-e.g.
-
-  foreach(@hiragana_strings){
-    print strtr($_, 'ぁ-ん', 'ァ-ン', 'o');
-  }
-  # katakana strings are printed
-
-will be almost as efficient as this:
-
-  $hiragana_to_katakana = trclosure('ぁ-ん', 'ァ-ン');
-
-  foreach(@hiragana_strings){
-    print &$hiragana_to_katakana($_);
-  }
-
-You can use whichever you like.
-
-Without C<'o'>,
-
-  foreach(@hiragana_strings){
-    print strtr($_, 'ぁ-ん', 'ァ-ン');
-  }
-
-will be very slow since the conversion table is made
-whenever the function is called.
-
-=back
-
-=head2 Generation of the Closure to Transliterate
-
-=over 4
-
-=item C<trclosure(SEARCHLIST, REPLACEMENTLIST)>
-
-=item C<trclosure(SEARCHLIST, REPLACEMENTLIST, MODIFIER)>
-
-=item C<trclosure(SEARCHLIST, REPLACEMENTLIST, MODIFIER, PATTERN)>
-
-=item C<trclosure(SEARCHLIST, REPLACEMENTLIST, MODIFIER, PATTERN, TOPATTERN)>
-
-Returns a closure to transliterate the specified string.
-The return value is an only code reference, not blessed object.
-By use of this code ref, you can save yourself time
-as you need not specify the parameter list every time.
-
-  my $digit_tr = trclosure("1234567890-", "一二三四五六七八九〇－");
-  print &$digit_tr ("TEL ：0124-45-6789\n"); # ok to perl 5.003
-  print $digit_tr->("FAX ：0124-51-5368\n"); # perl 5.004 or better
-
-  # output:
-  # 電話：〇一二四－四五－六七八九
-  # FAX ：〇一二四－五一－五三六八
-
-The functionality of the closure made by C<trclosure()> is equivalent 
-to that of C<strtr()>. Frankly speaking, the C<strtr()> calls
-C<trclosure()> internally and uses the returned closure.
-
-=back
-
-=head2 Conversion between hiragana and katakana
-
-=over 4
-
-=item C<kanaH2Z(STRING)>
-
-Converts Hankaku Katakana to Zenkaku Katakana
-
-=item C<kataZ2H(STRING)>
-
-Converts Zenkaku Katakana to Hankaku Katakana
-
-=item C<kanaZ2H(STRING)>
-
-Converts Zenkaku Hiragana and Katakana to Hankaku Katakana
-
-=item C<hiXka(STRING)>
-
-Converts Zenkaku Hiragana to Zenkaku Katakana
-and Zenkaku Katakana to Zenkaku Hiragana at once.
-
-=item C<hi2ka(STRING)>
-
-Converts Zenkaku Hiragana to Zenkaku Katakana
-
-=item C<ka2hi(STRING)>
-
-Converts Zenkaku Katakana to Zenkaku Hiragana
-
-=back
-
-=head2 Conversion of Whitespace Characters
-
-=over 4
-
-=item C<spaceH2Z(STRING)>
-
-Converts space (half-width) to ideographic space (full-width)
-in the specified string and returns the converted string.
-
-=item C<spaceZ2H(STRING)>
-
-Converts ideographic space (full-width) to space (half-width)
-in the specified string and returns the converted string.
-
-=back
-
-=head1 CAVEAT
-
-A legal Shift_JIS character in this module
-must match the following regexp:
-
-   [\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]
-
-Any string from external source should be checked by C<issjis()>
-function, excepting you know it is surely encoded in Shift_JIS.
-
-Use of an illegal Shift_JIS string may lead to odd results.
-
-Some Shift_JIS double-byte characters have one of C<[\x40-\x7E]>
-as the trail byte.
-
-   @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
-
-The Perl lexer doesn't take any care to these characters,
-so they sometimes make trouble.
-e.g. the quoted literal C<"表"> causes fatal error,
-since its trail byte C<0x5C> backslashes the closing quote.
-
-Such a problem doesn't arise when the string is gotten from
-any external resource. 
-But writing the script containing Shift_JIS
-double-byte characters needs the greatest care.
-
-The use of single-quoted heredoc, C<E<lt>E<lt> ''>,
-or C<\xhh> meta characters is recommended
-in order to define a Shift_JIS string literal.
-
-The safe ASCII-graphic characters, C<[\x21-\x3F]>, are:
-
-   !"#$%&'()*+,-./0123456789:;<=>?
-
-They are preferred as the delimiter of quote-like operators.
-
-=head1 BUGS
-
-This library supposes C<$[> is always equal to 0, never 1. 
-
-The functions provided by this library use B<many> regexp operations.
-Therefore, C<$1> etc. values may be changed or discarded unexpectedly.
-I suggest you save it in a certain variable 
-before call of the function.
-
-=head1 AUTHOR
-
-Tomoyuki SADAHIRO
-
-  bqw10602@nifty.com
-  http://homepage1.nifty.com/nomenclator/perl/
-
-  Copyright(C) 2001, SADAHIRO Tomoyuki. Japan. All rights reserved.
-
-  This program is free software; you can redistribute it and/or 
-  modify it under the same terms as Perl itself.
-
-=head1 SEE ALSO
-
-=over 4
-
-=item L<ShiftJIS::Regexp>
-
-=item L<String::Multibyte>
-
-=back
-
-=cut

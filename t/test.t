@@ -3,7 +3,7 @@
 
 ######################### We start with some black magic to print on failure.
 
-BEGIN { $| = 1; print "1..17\n"; }
+BEGIN { $| = 1; print "1..18\n"; }
 END {print "not ok 1\n" unless $loaded;}
 
 use ShiftJIS::String qw(:all);
@@ -86,3 +86,13 @@ print "アイウエオabc-125pqr-xyz" eq tolower($str)
 $str = 'プログラミング Perl';
 $len = length(substr($str, 2 + index($str, 'ラミ')));
 print $len == 7 ? "ok" : "not ok", " 17\n";
+
+print strspn("XZ\0Z\0Y", "\0X\0YZ") == 6
+  &&  strcspn("Perlは面白い。", "XY\0r") == 2
+  &&  strspn("+0.12345*12", "+-.0123456789") == 8
+  &&  strcspn("Perlは面白い。", "赤青黄白黒") == 6
+  &&  strspn("", "123") == 0
+  &&  strcspn("", "123") == 0
+  &&  strspn("あいうえお", "") == 0
+  &&  strcspn("あいうえお", "") == 5
+ ? "ok" : "not ok", " 18\n";

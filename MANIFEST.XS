@@ -1,12 +1,12 @@
 Changes
 Makefile.PL
 MANIFEST
-MANIFEST.XS
+MANIFEST.NXS
 README
 String.pod
+String.xs
 String.pm
-String.pm.XS
-String.xs.XS
+String.pm.NXS
 t/alnum.t
 t/index.t
 t/issjis.t

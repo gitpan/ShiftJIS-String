@@ -3,7 +3,7 @@
 
 ######################### We start with some black magic to print on failure.
 
-BEGIN { $| = 1; print "1..9\n"; }
+BEGIN { $| = 1; print "1..11\n"; }
 END {print "not ok 1\n" unless $loaded;}
 
 use ShiftJIS::String qw(length);
@@ -36,3 +36,9 @@ print 1 == length('Q')
 
 print 3 == length(123)
   ? "ok" : "not ok", " 9\n";
+
+print 11 == length("‚ ‚©‚³‚½‚È\000‚Í‚Ü‚â‚ç‚í")
+  ? "ok" : "not ok", " 10\n";
+
+print 12 == length("AIU\000EO“ú–{\000Š¿Žš\x00")
+  ? "ok" : "not ok", " 11\n";
