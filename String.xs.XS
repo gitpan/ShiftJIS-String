@@ -22,7 +22,7 @@
 #define isSJ_WHITE(c)  ((c)==9 || (c)==10 || (c)==12 || (c)==13 || (c)==32)
 #define isSJ_LOWER(c)  (0x61<=(c) && (c)<=0x7A)
 #define isSJ_UPPER(c)  (0x41<=(c) && (c)<=0x5A)
-#define isSJ_BACKp(p)  ((*(p))==0x5C && ((*((p)+1)==0x5C) || (*((p)+1)==0x2D)))
+#define isSJ_BACKp(p)  ((*(p))==0x5C && ( (p)[1]==0x5C || (p)[1]==0x2D ))
 #define isSJ_RANGEp(p) ((*(p))==0x2D)
 
 /* ZENKAKU KANA */
@@ -40,17 +40,17 @@
 #define isSJ_KA2ND_KE(c) ((c)==0x96)
 #define isSJ_KA2ND_X(c) ((0x40<=(c) && (c)<=0x7E) || (0x80<=(c) && (c)<=0x96))
 
-#define isSJ_HI_VUp(p)   (*(p)==0x82 && (*((p)+1) == 0xA4) \
-	&& (*((p)+2) == 0x81) && (*((p)+3) == 0x4A) )
+#define isSJ_HI_VUp(p) (*(p)==0x82 && (p)[1]==0xA4 \
+	&& (p)[2]==0x81 && (p)[3]==0x4A )
 
-#define isSJ_HI_ITERp(p) (*(p)==0x81 && (*((p)+1) == 0x54 || *((p)+1) == 0x55))
-#define isSJ_KA_ITERp(p) (*(p)==0x81 && (*((p)+1) == 0x52 || *((p)+1) == 0x53))
+#define isSJ_HI_ITERp(p) (*(p)==0x81 && ((p)[1]==0x54 || (p)[1]==0x55))
+#define isSJ_KA_ITERp(p) (*(p)==0x81 && ((p)[1]==0x52 || (p)[1]==0x53))
 #define SJIS_DIFF_HIRA_KATA_ITER  (2)
 
 #define isSJ_ZKPCT2ND(c) ((c)==0x41 || (c)==0x42 || (c)==0x45 || \
        (c)==0x4A || (c)==0x4B || (c)==0x5B || (c)==0x75 || (c)==0x76)
 
-#define isSJ_ZSPACEp(p) (*(p)==0x81 && *((p)+1) == 0x40)
+#define isSJ_ZSPACEp(p) (*(p)==0x81 && (p)[1] == 0x40)
 
 #define isSJ_SPACEpc(p,ch) \
        (((ch) == 1 && isSJ_WHITE(*(p))) || ((ch) == 2 && isSJ_ZSPACEp(p)))
@@ -63,10 +63,10 @@
 #define isSJ_HHAHO(c) ( 0xCA<=(c) && (c)<=0xCE)
 #define isSJ_HTEN2(c) ((c)==0xDE)
 #define isSJ_HMARU(c) ((c)==0xDF)
-#define isSJ_H_VUp(p) ((*(p))==0xB3 && (*((p)+1))==0xDE)
+#define isSJ_H_VUp(p) ((p)[0]==0xB3 && (p)[1]==0xDE)
 
 /* 0xA0 to 0xDF : JIS X 0201 => Trailing byte : JIS X 0208 */
-static STDCHAR SJIS_HKANA_TRAIL[] = {
+static U8 SJIS_HKANA_TRAIL[] = {
     0x00, 0x42, 0x75, 0x76, 0x41, 0x45, 0x92, 0x40,
     0x42, 0x44, 0x46, 0x48, 0x83, 0x85, 0x87, 0x62,
     0x5B, 0x41, 0x43, 0x45, 0x47, 0x49, 0x4A, 0x4C,
@@ -190,9 +190,7 @@ diff_by_lead (U8 a, U8 b)
     );
 }
 
-/*
- * internal for mkrange
- */
+
 static U8*
 range_expand (U8 *d, U16 fr, U16 to)
 {
@@ -258,9 +256,6 @@ range_expand (U8 *d, U16 fr, U16 to)
 }
 
 
-/*
- * internal for mkrange
- */
 static U8*
 range_expand_rev (U8 *d, U16 fr, U16 to)
 {
@@ -424,7 +419,7 @@ length(src)
     STRLEN byte;
   PPCODE:
     s = (U8*)SvPV(src,byte);
-    XSRETURN_IV(length(s,byte));
+    XPUSHs(sv_2mortal(newSViv(length(s,byte))));
 
 
 
@@ -489,7 +484,7 @@ strspn(src, search)
     }
     Safefree(one);
     Safefree(two);
-    XSRETURN_IV(cnt);
+    XPUSHs(sv_2mortal(newSViv(cnt)));
 
 
 void
@@ -538,7 +533,7 @@ index(src, sub, pos=-0)
 	}
 	p += isSJ2BTp(p,e) ? 2 : 1;
     }
-    XSRETURN_IV(ret_iv);
+    XPUSHs(sv_2mortal(newSViv(ret_iv)));
 
 
 
@@ -599,6 +594,7 @@ possubstr (src, off, len=-0, rep=&PL_sv_undef)
 	    break;
 	p += isSJ2BTp(p,e) ? 2 : 1;
 	++cnt;
+
 	if (cnt == ini)
 	    p_ini = p;
 	if (cnt == fin)
@@ -627,6 +623,7 @@ hiXka(src)
 
     dst = byte ? newSV(2 * byte) : newSVpvn("",0);
     (void)SvPOK_only(dst);
+    (void)sv_2mortal(dst);
     d = (U8*)SvPVX(dst);
 
     for (p = s, e = s + byte; p < e;) {
@@ -638,7 +635,7 @@ hiXka(src)
 		    p += 3; ++cnt;
 		    continue;
 		}
-		else if (isSJ_HI1ST(*p) && isSJ_HI2ND(*(p+1))) {
+		else if (isSJ_HI1ST(*p) && isSJ_HI2ND(p[1])) {
 		    *d++ = *p++ + 1;
 		    *d++ = *p - (SJIS_DIFF_HIRA_KATA + isSJ_HI2ND1(*p));
 		    ++p; ++cnt;
@@ -653,13 +650,13 @@ hiXka(src)
 	    }
 	    if (ix != 1) {
 		if (isSJ_KA1ST(*p)) {
-		    if (isSJ_KA2ND(*(p+1))) {
+		    if (isSJ_KA2ND(p[1])) {
 			*d++ = *p++ - 1;
 			*d++ = *p + (SJIS_DIFF_HIRA_KATA + isSJ_KA2ND1(*p));
 			++p; ++cnt;
 			continue;
 		    }
-		    else if (isSJ_KA2ND_VU(*(p+1))) {
+		    else if (isSJ_KA2ND_VU(p[1])) {
 			*d++ = *p++ - 1;
 			*d++ = 0xA4;
 			*d++ = 0x81;
@@ -667,13 +664,13 @@ hiXka(src)
 			++p; ++cnt;
 			continue;
 		    }
-		    else if (isSJ_KA2ND_KA(*(p+1))) {
+		    else if (isSJ_KA2ND_KA(p[1])) {
 			*d++ = *p++ - 1;
 			*d++ = 0xA9;
 			++p; ++cnt;
 			continue;
 		    }
-		    else if (isSJ_KA2ND_KE(*(p+1))) {
+		    else if (isSJ_KA2ND_KE(p[1])) {
 			*d++ = *p++ - 1;
 			*d++ = 0xAF;
 			++p; ++cnt;
@@ -700,7 +697,7 @@ hiXka(src)
 	XPUSHs(sv_2mortal(newSViv(cnt)));
     }
     else
-	XPUSHs(sv_2mortal(dst));
+	XPUSHs(dst);
 
 
 void
@@ -721,30 +718,31 @@ kanaH2Z(src)
 
     dst = byte ? newSV(2 * byte) : newSVpvn("",0);
     (void)SvPOK_only(dst);
+    (void)sv_2mortal(dst);
     d = (U8*)SvPVX(dst);
 
-    for (p = s, e = s + byte; p < e;) {
+    for (p = s, e = s + byte; p < e; ) {
 	if (isSJ2BTp(p,e)) {
 	    *d++ = *p++;
 	    *d++ = *p++;
 	}
 	else if (isSJ_HKPCT(*p)) {
 	    *d++ = 0x81;
-	    *d++ = (U8)SJIS_HKANA_TRAIL[ *p++ - 0xA0 ];
+	    *d++ = SJIS_HKANA_TRAIL[ *p++ - 0xA0 ];
 	    ++cnt;
 	}
 	else if (isSJ_HKANA(*p)) {
 	    *d++ = 0x83;
-	    *d   = (U8)SJIS_HKANA_TRAIL[ *p - 0xA0 ];
+	    *d   = SJIS_HKANA_TRAIL[ *p - 0xA0 ];
 
-	    if (isSJ_HKATO(*p) && isSJ_HTEN2(*(p+1)))
+	    if (isSJ_HKATO(*p) && isSJ_HTEN2(p[1]))
 		++*d, ++p;
 	    else if (isSJ_H_VUp(p))
 		*d = 148, ++p;
 	    else if (isSJ_HHAHO(*p)) {
-		if (isSJ_HTEN2(*(p+1)))
+		if (isSJ_HTEN2(p[1]))
 		    ++*d, ++p;
-		else if (isSJ_HMARU(*(p+1)))
+		else if (isSJ_HMARU(p[1]))
 		    *d += 2, ++p;
 	    }
 	    ++d; ++p; ++cnt;
@@ -759,7 +757,7 @@ kanaH2Z(src)
 	XPUSHs(sv_2mortal(newSViv(cnt)));
     }
     else
-	XPUSHs(sv_2mortal(dst));
+	XPUSHs(dst);
 
 
 
@@ -782,6 +780,7 @@ kanaZ2H(src)
 
     dst = byte ? newSV(byte) : newSVpvn("",0);
     (void)SvPOK_only(dst);
+    (void)sv_2mortal(dst);
     d = (U8*)SvPVX(dst);
 
     for (p = s, e = s + byte; p < e; ) {
@@ -799,7 +798,7 @@ kanaZ2H(src)
 		    p += 4; ++cnt;
 		}
 	    }
-	     else if (ix != 1 && isSJ_HI1ST(*p) && isSJ_HI2ND(*(p+1))) {
+	    else if (ix != 1 && isSJ_HI1ST(*p) && isSJ_HI2ND(p[1])) {
 		uv = SJIS_ZHIRA_TRAIL[ *++p - 0x9F ];
 		if (0xFF < uv)
 		    *d++ = (U8)(uv >> 8);
@@ -807,7 +806,7 @@ kanaZ2H(src)
 		    *d++ = (U8)(uv & 0xFF);
 		++p; ++cnt;
 	    }
-	    else if (isSJ_KA1ST(*p) && isSJ_KA2ND_X(*(p+1))) {
+	    else if (isSJ_KA1ST(*p) && isSJ_KA2ND_X(p[1])) {
 		uv = SJIS_ZKATA_TRAIL[ *++p - 0x40 ];
 		if (0xFF < uv)
 		    *d++ = (U8)(uv >> 8);
@@ -815,7 +814,7 @@ kanaZ2H(src)
 		    *d++ = (U8)(uv & 0xFF);
 		++p; ++cnt;
 	    }
-	    else if (*p == 0x81 && isSJ_ZKPCT2ND(*(p+1))) {
+	    else if (*p == 0x81 && isSJ_ZKPCT2ND(p[1])) {
 		switch (*++p) {
 		    case 0x41: *d++ = 0xA4; break;
 		    case 0x42: *d++ = 0xA1; break;
@@ -844,7 +843,7 @@ kanaZ2H(src)
 	XPUSHs(sv_2mortal(newSViv(cnt)));
     }
     else
-	XPUSHs(sv_2mortal(dst));
+	XPUSHs(dst);
 
 
 void
@@ -863,6 +862,7 @@ spaceH2Z(src)
 
     dst = byte ? newSV(2 * byte) : newSVpvn("",0);
     (void)SvPOK_only(dst);
+    (void)sv_2mortal(dst);
     d = (U8*)SvPVX(dst);
 
     for (p = s, e = s + byte; p < e;) {
@@ -886,8 +886,7 @@ spaceH2Z(src)
 	XPUSHs(sv_2mortal(newSViv(cnt)));
     }
     else
-	XPUSHs(sv_2mortal(dst));
-
+	XPUSHs(dst);
 
 
 void
@@ -907,6 +906,7 @@ spaceZ2H(src)
 
     dst = byte ? newSV(byte) : newSVpvn("",0);
     (void)SvPOK_only(dst);
+    (void)sv_2mortal(dst);
     d = (U8*)SvPVX(dst);
 
     for (p = s, e = s + byte; p < e; ) {
@@ -932,7 +932,7 @@ spaceZ2H(src)
 	XPUSHs(sv_2mortal(newSViv(cnt)));
     }
     else
-	XPUSHs(sv_2mortal(dst));
+	XPUSHs(dst);
 
 
 void
@@ -953,6 +953,7 @@ toupper(src)
 
     dst = byte ? newSV(byte) : newSVpvn("",0);
     (void)SvPOK_only(dst);
+    (void)sv_2mortal(dst);
     d = (U8*)SvPVX(dst);
 
     for (p = s, e = s + byte; p < e; ) {
@@ -975,7 +976,7 @@ toupper(src)
 	XPUSHs(sv_2mortal(newSViv(cnt)));
     }
     else
-	XPUSHs(sv_2mortal(dst));
+	XPUSHs(dst);
 
 
 void
@@ -1131,6 +1132,7 @@ strtr_light (src, trans, mod = &PL_sv_no)
 
     dst = byte ? newSV(2 * byte + 1) : newSVpvn("",0);
     (void)SvPOK_only(dst);
+    (void)sv_2mortal(dst);
     d = (U8*)SvPVX(dst);
 
     pre[0] = pre[1] = prebyte = 0;
@@ -1270,7 +1272,7 @@ strtr_light (src, trans, mod = &PL_sv_no)
 	XPUSHs(sv_2mortal(newSViv(cnt)));
     }
     else
-	XPUSHs(sv_2mortal(dst));
+	XPUSHs(dst);
 
 
 void
@@ -1508,7 +1510,7 @@ strsplit (separator, src, lim = 0)
 	    if (!wantarray)
 		XPUSHs(sv_2mortal(newSViv(cnt)));
 	} /* end strsplit main */
-    } /* end other-than splitspace */
+    }
 
 
 
@@ -1621,4 +1623,5 @@ strcmp (l_sv, r_sv)
 	    croak("ShiftJIS::String XS Panic switch in strcmp");
 	    break;
     }
+
 

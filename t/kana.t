@@ -3,7 +3,7 @@
 
 ######################### We start with some black magic to print on failure.
 
-BEGIN { $| = 1; print "1..19\n"; }
+BEGIN { $| = 1; print "1..20\n"; }
 END {print "not ok 1\n" unless $loaded;}
 
 use ShiftJIS::String qw(:kana :H2Z :Z2H toupper tolower);
@@ -140,4 +140,14 @@ print 1
   print $ng == 0 ? "ok" : "not ok", " ", ++$loaded, "\n";
 }
 
+sub stricmp { toupper($_[0]) cmp toupper($_[1]) }
+
+print 1
+  &&  0 == stricmp('', '')
+  && -1 == stricmp('', "\0")
+  &&  0 == stricmp('A', 'a')
+  && -1 == stricmp('講習', '講縮')
+  &&  0 == stricmp('プログラミングPerl',  'プログラミングPERL')
+  && -1 == stricmp('プログラミングPerl',  'プログラミンバPERL')
+  ? "ok" : "not ok", " 20\n";
 
