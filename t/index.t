@@ -3,17 +3,63 @@
 
 ######################### We start with some black magic to print on failure.
 
-# Change 1..1 below to 1..last_test_to_print .
-# (It may become useful if the test is moved to ./t subdirectory.)
-
-BEGIN { $| = 1; print "1..3\n"; }
+BEGIN { $| = 1; print "1..5\n"; }
 END {print "not ok 1\n" unless $loaded;}
-use ShiftJIS::String qw(strtr spaceH2Z spaceZ2H);
+
+use ShiftJIS::String qw(index rindex);
 $^W = 1;
 $loaded = 1;
 print "ok 1\n";
 
 ######################### End of black magic.
+
+print index("", ""    )   eq CORE::index("", ""    )
+   && index("", "", -1)   eq CORE::index("", "", -1)
+   && index("", "",  0)   eq CORE::index("", "",  0)
+   && index("", "",  1)   eq CORE::index("", "",  1)
+   && index("", "", 10)   eq CORE::index("", "", 10)
+   && index("", "a"   )   eq CORE::index("", "a"   )
+   && index("", "a", -1)  eq CORE::index("", "a", -1)
+   && index("", "a",  0)  eq CORE::index("", "a",  0)
+   && index("", "a",  1)  eq CORE::index("", "a",  1)
+   && index("", "a", 10)  eq CORE::index("", "a", 10)
+   && index(" a", ""    ) eq CORE::index(" a", ""    )
+   && index(" a", "", -1) eq CORE::index(" a", "", -1)
+   && index(" a", "",  0) eq CORE::index(" a", "",  0)
+   && index(" a", "",  1) eq CORE::index(" a", "",  1)
+   && index(" a", "",  2) eq CORE::index(" a", "",  2)
+   && index(" a", "", 10) eq CORE::index(" a", "", 10)
+   && index(" a", "a"   ) eq CORE::index(" a", "a"   )
+   && index(" a", "a",-1) eq CORE::index(" a", "a",-1)
+   && index(" a", "a", 0) eq CORE::index(" a", "a", 0)
+   && index(" a", "a", 1) eq CORE::index(" a", "a", 1)
+   && index(" a", "a", 2) eq CORE::index(" a", "a", 2)
+   && index(" a", "a",10) eq CORE::index(" a", "a",10)
+  ? "ok" : "not ok", " 2\n";
+
+print rindex("", ""    )   eq CORE::rindex("", "")
+   && rindex("", "", -1)   eq CORE::rindex("", "", -1)
+   && rindex("", "",  0)   eq CORE::rindex("", "",  0)
+   && rindex("", "",  1)   eq CORE::rindex("", "",  1)
+   && rindex("", "", 10)   eq CORE::rindex("", "", 10)
+   && rindex("", "a"    )  eq CORE::rindex("", "a"    )
+   && rindex("", "a", -1)  eq CORE::rindex("", "a", -1)
+   && rindex("", "a",  0)  eq CORE::rindex("", "a",  0)
+   && rindex("", "a",  1)  eq CORE::rindex("", "a",  1)
+   && rindex("", "a", 10)  eq CORE::rindex("", "a", 10)
+   && rindex(" a", ""    ) eq CORE::rindex(" a", ""    )
+   && rindex(" a", "", -1) eq CORE::rindex(" a", "", -1)
+   && rindex(" a", "",  0) eq CORE::rindex(" a", "",  0)
+   && rindex(" a", "",  1) eq CORE::rindex(" a", "",  1)
+   && rindex(" a", "",  2) eq CORE::rindex(" a", "",  2)
+   && rindex(" a", "", 10) eq CORE::rindex(" a", "", 10)
+   && rindex(" a", "a"   ) eq CORE::rindex(" a", "a"   )
+   && rindex(" a", "a",-1) eq CORE::rindex(" a", "a",-1)
+   && rindex(" a", "a", 0) eq CORE::rindex(" a", "a", 0)
+   && rindex(" a", "a", 1) eq CORE::rindex(" a", "a", 1)
+   && rindex(" a", "a", 2) eq CORE::rindex(" a", "a", 2)
+   && rindex(" a", "a",10) eq CORE::rindex(" a", "a",10)
+  ? "ok" : "not ok", " 3\n";
 
 {
   my $str = '+0.1231425126-*12346';
@@ -26,17 +72,17 @@ print "ok 1\n";
   my $NG;
   $NG = 0;
   for $pos (-10..18){
-    $si = index($str,$sub,$pos);
-    $bi = ShiftJIS::String::index($zen,$sbz,$pos);
+    $si = CORE::index($str,$sub,$pos);
+    $bi = index($zen,$sbz,$pos);
     $NG++ if $si != $bi;
   }
-  print !$NG ? "ok" : "not ok", " 2\n";
+  print !$NG ? "ok" : "not ok", " 4\n";
 
   $NG = 0;
   for $pos (-10..16){
-    $si = rindex($str,$sub,$pos);
-    $bi = ShiftJIS::String::rindex($zen,$sbz,$pos);
+    $si = CORE::rindex($str,$sub,$pos);
+    $bi = rindex($zen,$sbz,$pos);
     $NG++ if $si != $bi;
   }
-  print !$NG ? "ok" : "not ok", " 3\n";
+  print !$NG ? "ok" : "not ok", " 5\n";
 }

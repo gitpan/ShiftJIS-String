@@ -13,3 +13,4 @@ t/subst.t
 t/substr.t
 t/test.t
 t/tr.t
+t/unary.t

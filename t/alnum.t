@@ -3,12 +3,10 @@
 
 ######################### We start with some black magic to print on failure.
 
-# Change 1..1 below to 1..last_test_to_print .
-# (It may become useful if the test is moved to ./t subdirectory.)
-
 BEGIN { $| = 1; print "1..9\n"; }
 END {print "not ok 1\n" unless $loaded;}
-use ShiftJIS::String qw(strtr spaceH2Z spaceZ2H);
+
+use ShiftJIS::String qw(mkrange trclosure);
 
 $^W = 1;
 $loaded = 1;
@@ -18,28 +16,28 @@ print "ok 1\n";
 {
   my $NG;
 
-  my $digitH = ShiftJIS::String::mkrange('0-9');
-  my $digitZ = ShiftJIS::String::mkrange('ÇO-ÇX');
-  my $lowerH = ShiftJIS::String::mkrange('a-z');
-  my $lowerZ = ShiftJIS::String::mkrange('ÇÅ-Çö');
-  my $upperH = ShiftJIS::String::mkrange('A-Z');
-  my $upperZ = ShiftJIS::String::mkrange('Ç`-Çy');
-  my $alphaH = ShiftJIS::String::mkrange('A-Za-z');
-  my $alphaZ = ShiftJIS::String::mkrange('Ç`-ÇyÇÅ-Çö');
-  my $alnumH = ShiftJIS::String::mkrange('0-9A-Za-z');
-  my $alnumZ = ShiftJIS::String::mkrange('ÇO-ÇXÇ`-ÇyÇÅ-Çö');
+  my $digitH = mkrange('0-9');
+  my $digitZ = mkrange('ÇO-ÇX');
+  my $lowerH = mkrange('a-z');
+  my $lowerZ = mkrange('ÇÅ-Çö');
+  my $upperH = mkrange('A-Z');
+  my $upperZ = mkrange('Ç`-Çy');
+  my $alphaH = mkrange('A-Za-z');
+  my $alphaZ = mkrange('Ç`-ÇyÇÅ-Çö');
+  my $alnumH = mkrange('0-9A-Za-z');
+  my $alnumZ = mkrange('ÇO-ÇXÇ`-ÇyÇÅ-Çö');
 
-  my $digitZ2H = ShiftJIS::String::trclosure($digitZ, $digitH);
-  my $upperZ2H = ShiftJIS::String::trclosure($upperZ, $upperH);
-  my $lowerZ2H = ShiftJIS::String::trclosure($lowerZ, $lowerH);
-  my $alphaZ2H = ShiftJIS::String::trclosure($alphaZ, $alphaH);
-  my $alnumZ2H = ShiftJIS::String::trclosure($alnumZ, $alnumH);
+  my $digitZ2H = trclosure($digitZ, $digitH);
+  my $upperZ2H = trclosure($upperZ, $upperH);
+  my $lowerZ2H = trclosure($lowerZ, $lowerH);
+  my $alphaZ2H = trclosure($alphaZ, $alphaH);
+  my $alnumZ2H = trclosure($alnumZ, $alnumH);
 
-  my $digitH2Z = ShiftJIS::String::trclosure($digitH, $digitZ);
-  my $upperH2Z = ShiftJIS::String::trclosure($upperH, $upperZ);
-  my $lowerH2Z = ShiftJIS::String::trclosure($lowerH, $lowerZ);
-  my $alphaH2Z = ShiftJIS::String::trclosure($alphaH, $alphaZ);
-  my $alnumH2Z = ShiftJIS::String::trclosure($alnumH, $alnumZ);
+  my $digitH2Z = trclosure($digitH, $digitZ);
+  my $upperH2Z = trclosure($upperH, $upperZ);
+  my $lowerH2Z = trclosure($lowerH, $lowerZ);
+  my $alphaH2Z = trclosure($alphaH, $alphaZ);
+  my $alnumH2Z = trclosure($alnumH, $alnumZ);
 
   my($H,$Z,$tr);
   for $H ($digitH, $lowerH, $upperH){

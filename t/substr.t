@@ -3,12 +3,9 @@
 
 ######################### We start with some black magic to print on failure.
 
-# Change 1..1 below to 1..last_test_to_print .
-# (It may become useful if the test is moved to ./t subdirectory.)
-
 BEGIN { $| = 1; print "1..6\n"; }
 END {print "not ok 1\n" unless $loaded;}
-use ShiftJIS::String qw(strtr spaceH2Z spaceZ2H);
+use ShiftJIS::String qw(trclosure);
 
 $^W = 1;
 $loaded = 1;
@@ -16,7 +13,7 @@ print "ok 1\n";
 
 ######################### End of black magic.
 {
-  my $printZ2H = ShiftJIS::String::trclosure(
+  my $printZ2H = trclosure(
     '‚O-‚X‚`-‚y‚-‚š@{|HI”“•—–ƒ„ijmnop',
     '0-9A-Za-z =+\-?!#$%&@*<>()[]{}',
   );

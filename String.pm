@@ -1,124 +1,140 @@
 package ShiftJIS::String;
 
-use strict;
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
-
 use Carp;
+use strict;
+use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
+
+$VERSION = '0.09';
+$PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
-
 @ISA = qw(Exporter);
 
-@EXPORT = qw();
+my @Core = qw/issjis length strrev toupper tolower index rindex strspn strcspn
+  substr mkrange strtr trclosure/;
+my @Kana = qw/hi2ka ka2hi hiXka/;
+my @H2Z  = qw/kataH2Z kanaH2Z spaceH2Z/;
+my @Z2H  = qw/kataZ2H kanaZ2H spaceZ2H/;
 
-@EXPORT_OK = qw(
-  issjis length strrev toupper tolower index rindex strspn strcspn
-  splitspace splitchar substr mkrange strtr trclosure
-  kataH2Z kanaH2Z kataZ2H kanaZ2H hi2ka ka2hi hiXka spaceH2Z spaceZ2H
+%EXPORT_TAGS = (
+   core => \@Core,
+   kana => \@Kana,
+   H2Z  => \@H2Z,
+   Z2H  => \@Z2H,
+   all  => [@Core, @Kana, @H2Z, @Z2H],
 );
 
-$VERSION = '0.08';
+@EXPORT_OK = @{ $EXPORT_TAGS{all} };
+@EXPORT = ();
 
 my $Char = '(?:[\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC])';
 
-############################################################################
-#
-# issjis(LIST)
-#
-############################################################################
-sub issjis{
+##
+## issjis(LIST)
+##
+sub issjis
+{
    !grep !
    /^(?:[\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC])*$/,
    @_;
 }
 
-############################################################################
-#
-# tolower(STRING)
-#
-############################################################################
-sub tolower {
-  my $str = $_[0];
+##
+## tolower(STRING)
+##
+sub tolower($)
+{
+  my $str = shift;
   $str =~ s/\G($Char*?)([A-Z]+)/$1\L$2/g;
   return $str;
 }
 
-############################################################################
-#
-# toupper(STRING)
-#
-############################################################################
-sub toupper {
-  my $str = $_[0];
+##
+## toupper(STRING)
+##
+sub toupper($)
+{
+  my $str = shift;
   $str =~ s/\G($Char*?)([a-z]+)/$1\U$2/g;
   return $str;
 }
 
-############################################################################
-#
-# length(STRING)
-# 
-############################################################################
-sub length{
-    scalar( (my $str = shift) =~ s/$Char//go );
+##
+## length(STRING)
+##
+sub length($)
+{
+  my $str = shift;
+  0 + $str =~ s/$Char//go;
 }
 
-############################################################################
-#
-# strrev(STRING)
-# 
-############################################################################
-sub strrev{
+##
+## strrev(STRING)
+## 
+sub strrev($)
+{
     my $str = shift;
     join '', reverse _splitchar($str);
 }
 
-sub _splitchar{ $_[0] =~ /$Char/go }
+sub _splitchar($){ $_[0] =~ /$Char/go }
 
-############################################################################
-#
-# index(STRING, SUBSTR; POSITION)
-# 
-############################################################################
-sub index{
+##
+## index(STRING, SUBSTR; POSITION)
+## 
+sub index($$;$)
+{
   my($head);
-  my $str = shift;
-  my $sub = quotemeta shift;
-  my $pos = shift;
-  $pos = 0 if $pos < 0;
-  if($pos){
-    ${ &substr(\$str,$pos) } =~ /^($Char*?)$sub/;
+  my($str,$sub,$pos) = @_;
+  if($sub eq ""){
+    my $len = &length($str);
+    return
+      @_ == 3 ? 
+        $pos < 0    ? 0 :
+        $pos < $len ? $pos : $len
+      : 0;
+  }
+  my $pat = quotemeta $sub;
+  if($pos && $pos > 0){
+    return -1 if $pos > &length($str);
+    ${ &substr(\$str,$pos) } =~ /^($Char*?)$pat/;
     $head = $1;
     defined $head ? $pos + &length($head) : -1;
   } else {
-    $str =~ /^($Char*?)$sub/;
+    $str =~ /^($Char*?)$pat/;
     $head = $1;
     defined $head ? &length($head) : -1;
   }
 }
 
-############################################################################
-#
-# rindex(STRING, SUBSTR; POSITION)
-# 
-############################################################################
-sub rindex{
+##
+## rindex(STRING, SUBSTR; POSITION)
+##
+sub rindex($$;$)
+{
   my($head);
   my($str,$sub,$pos) = @_;
+  if($sub eq ""){
+    my $len = &length($str);
+    return
+      @_ == 3 ? 
+        $pos < 0    ? 0 :
+        $pos < $len ? $pos : $len
+      : $len;
+  }
+  return -1 if $pos && $pos < 0;
   my $pat = quotemeta $sub;
-  return -1 if $pos < 0;
-  (defined $pos ? ${ &substr(\$str, 0, $pos + &length($sub)) } : $str) =~
+  (@_ == 3 ? ${ &substr(\$str, 0, $pos + &length($sub)) } : $str) =~
      /^($Char*)$pat/;
   $head = $1;
   defined $head ? &length($head) : -1;
 }
 
-############################################################################
-#
-# strspn(STRING, SEARCHLIST)
-#
-############################################################################
-sub strspn{
+##
+## strspn(STRING, SEARCHLIST)
+##
+sub strspn($$)
+{
   my($str, $lst, %lst, $pos);
   ($str, $lst) = @_;
   $pos = 0;
@@ -130,12 +146,11 @@ sub strspn{
   return $pos;
 }
 
-############################################################################
-#
-# strcspn(STRING, SEARCHLIST)
-#
-############################################################################
-sub strcspn{
+##
+## strcspn(STRING, SEARCHLIST)
+##
+sub strcspn($$)
+{
   my($str, $lst, %lst, $pos);
   ($str, $lst) = @_;
   $pos = 0;
@@ -147,13 +162,12 @@ sub strcspn{
   return $pos;
 }
 
-############################################################################
-#
-# substr(STRING or SCALAR REF, OFFSET; LENGTH)
-# substr(SCALAR, OFFSET, LENGTH, REPLACEMENT)
-# 
-############################################################################
-sub substr{
+##
+## substr(STRING or SCALAR REF, OFFSET; LENGTH)
+## substr(SCALAR, OFFSET, LENGTH, REPLACEMENT)
+##
+sub substr($$;$$)
+{
   my(@chars, $slen, $ini, $fin, $except);
   my($str, $off, $len, $rep) = @_;
   $slen = @chars = _splitchar(ref $str ? $$str : $str);
@@ -164,7 +178,7 @@ sub substr{
     $except = 1 if 0 <= $len && $off + $len + $slen < 0;
   }
   if($except){
-    if(@_ > 3){croak "substr outside of string"} else {return}
+    if(@_ > 3){croak "$PACKAGE: substr outside of string"} else {return}
   }
   $ini = $off < 0 ? $slen + $off : $off;
   $fin = $len < 0 ? $slen + $len : $ini + $len;
@@ -184,15 +198,14 @@ sub substr{
     : join '', @chars[$ini..$fin-1]
 }
 
-############################################################################
-#
-# strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST; 
-#       MODIFIER, PATTERN, TOPATTERN)
-#
-############################################################################
+##
+## strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST; 
+##       MODIFIER, PATTERN, TOPATTERN)
+##
 my %Cache;
 
-sub strtr {
+sub strtr($$$;$$$)
+{
   my $str = shift;
   my $coderef;
   if(defined $_[2] && $_[2] =~ /o/){
@@ -205,7 +218,11 @@ sub strtr {
   &$coderef($str);
 }
 
-sub spaceZ2H {
+##
+## spaceZ2H(STRING)
+##
+sub spaceZ2H($)
+{
   my $str = shift;
   my $len = CORE::length(ref $str ? $$str : $str);
   (ref $str ? $$str : $str) =~
@@ -213,19 +230,22 @@ sub spaceZ2H {
   ref $str ? abs($len - CORE::length $$str) : $str;
 };
 
-sub spaceH2Z {
+##
+## spaceH2Z(STRING)
+##
+sub spaceH2Z($)
+{
   my $str = shift;
   my $len = CORE::length(ref $str ? $$str : $str);
   (ref $str ? $$str : $str) =~ s/ /\x81\x40/g;
   ref $str ? abs($len - CORE::length $$str) : $str;
 };
 
-############################################################################
-#
-# trclosure(SEARCHLIST, REPLACEMENTLIST; MODIFIER, PATTERN, TOPATTERN)
-#
-############################################################################
-sub trclosure {
+##
+## trclosure(SEARCHLIST, REPLACEMENTLIST; MODIFIER, PATTERN, TOPATTERN)
+##
+sub trclosure($$;$$$)
+{
   my(@fr, @to, $r, $R, $c, $d, $s, $i, %hash);
   my($fr, $to, $mod, $re, $tore) = @_;
 
@@ -315,16 +335,14 @@ sub trclosure {
           exists $hash{$1} ? (++$cnt, $hash{$1}) : $1;
         }ge;
         ref $str ? $cnt : $str;
-      } : sub { croak "Error! Invalid Closure!\n" }
+      } : sub { croak "$PACKAGE: trclosure Error! Invalid Closure!\n" }
 }
 
-###########################################################################
-#
-# mkrange(STRING, BOOL)
-#
-############################################################################
-
-sub mkrange{
+##
+## mkrange(STRING, BOOL)
+##
+sub mkrange($;$)
+{
   my($s, @retv, $range, $min, $max);
   my($self,$rev) = @_;
   $self =~ s/^-/\\-/;
@@ -349,12 +367,14 @@ sub mkrange{
   wantarray ? @retv : @retv ? join('', @retv) : '';
 }
 
-sub __ord{
+sub __ord($)
+{
   my $c = shift;
   CORE::length($c) > 1 ? unpack('n', $c) : ord($c);
 }
 
-sub __expand{
+sub __expand
+{
   my($ini, $fin, $i, $ch, @retv);
   my($fin_f,$fin_t,$ini_f,$ini_t);
   my($fr, $to, $rev) = @_;
@@ -405,13 +425,9 @@ sub __expand{
   return $rev ? reverse(@retv) : @retv;
 }
 
-############################################################################
-#
-# Kana Letter
-#
-############################################################################
-
-
+##
+## Kana Letter
+##
 my $kataTRE = '(?:[\xB3\xB6-\xC4\xCA-\xCE]\xDE|[\xCA-\xCE]\xDF)';
 my $hiraTRE = '(?:\x82\xA4\x81\x4A)';
 my $kanaTRE = "(?:$hiraTRE|$kataTRE)";
@@ -455,21 +471,20 @@ my $hiXka = trclosure($kataZ.$hiraZ, $hiraZ.$kataZ, 'R', $hiraTRE);
 my $hi2ka = trclosure($hiraZ, $kataZ, 'R', $hiraTRE);
 my $ka2hi = trclosure($kataZ, $hiraZ, 'R', $hiraTRE);
 
-sub kataH2Z { &$kataH2Z(@_) }
-sub kanaH2Z { &$kataH2Z(@_) }
-sub kataZ2H { &$kataZ2H(@_) }
-sub kanaZ2H { &$kanaZ2H(@_) }
-sub hiXka   { &$hiXka(@_) }
-sub hi2ka   { &$hi2ka(@_) }
-sub ka2hi   { &$ka2hi(@_) }
+sub kataH2Z ($) { &$kataH2Z(@_) }
+sub kanaH2Z ($) { &$kataH2Z(@_) }
+sub kataZ2H ($) { &$kataZ2H(@_) }
+sub kanaZ2H ($) { &$kanaZ2H(@_) }
+sub hiXka   ($) { &$hiXka(@_) }
+sub hi2ka   ($) { &$hi2ka(@_) }
+sub ka2hi   ($) { &$ka2hi(@_) }
 
 1;
 __END__
 
 =head1 NAME
 
-ShiftJIS::String - Perl module to deal with
-Japanese strings in Shift_JIS encoding.
+ShiftJIS::String - functions to manipulate Shift_JIS encoded strings
 
 =head1 SYNOPSIS
 
@@ -897,8 +912,8 @@ must match the following regexp:
 
 Any string from external source should be checked by C<issjis()>
 function, excepting you know it is surely encoded in Shift_JIS.
-If an illegal Shift_JIS string is specified,
-the result should be unexpectable.
+
+Use of an illegal Shift_JIS string may lead to odd results.
 
 Some Shift_JIS double-byte characters have one of C<[\x40-\x7E]>
 as the trail byte.
@@ -948,6 +963,10 @@ Tomoyuki SADAHIRO
 
 =head1 SEE ALSO
 
-perl(1)
+=over 4
+
+=item L<ShiftJIS::Regexp>
+
+=back
 
 =cut

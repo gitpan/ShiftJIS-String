@@ -1,10 +1,9 @@
-A version 0.08
+A version 0.09
 ==============
 
 NAME
 
-ShiftJIS::String - Perl module to deal with Japanese strings 
-in Shift_JIS encoding.
+ShiftJIS::String - functions to manipulate Shift_JIS encoded strings
 
 SYNOPSIS
 
@@ -31,7 +30,7 @@ To install this module type the following:
 
 PREREQUISITES
 
-perl.
+Perl 5.003 or later.
 
 COPYRIGHT AND LICENCE
 
