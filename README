@@ -1,4 +1,4 @@
-A version 0.09
+A version 0.10
 ==============
 
 NAME
@@ -31,6 +31,8 @@ To install this module type the following:
 PREREQUISITES
 
 Perl 5.003 or later.
+
+Carp, Exporter, strict, vars.
 
 COPYRIGHT AND LICENCE
 

@@ -3,7 +3,7 @@
 
 ######################### We start with some black magic to print on failure.
 
-BEGIN { $| = 1; print "1..5\n"; }
+BEGIN { $| = 1; print "1..7\n"; }
 END {print "not ok 1\n" unless $loaded;}
 
 use ShiftJIS::String qw(index rindex);
@@ -86,3 +86,39 @@ print rindex("", ""    )   eq CORE::rindex("", "")
   }
   print !$NG ? "ok" : "not ok", " 5\n";
 }
+
+{
+  my $str = 'a'  x 10;
+  my $zen = '‚ ' x 10;
+  my $sub = 'a';
+  my $sbz = '‚ ';
+  my($pos,$si, $bi);
+
+  my $n = 1;
+  my $NG;
+  $NG = 0;
+  $si = CORE::index($str,$sub);
+  $bi = index($zen,$sbz);
+  $NG++ if $si != $bi;
+  for $pos (-10..18){
+    $si = CORE::index($str,$sub,$pos);
+    $bi = index($zen,$sbz,$pos);
+    $NG++ if $si != $bi;
+  }
+  print !$NG ? "ok" : "not ok", " 6\n";
+
+  $NG = 0;
+  $si = CORE::rindex($str,$sub);
+  $bi = rindex($zen,$sbz);
+  $NG++ if $si != $bi;
+  for $pos (-10..16){
+    $si = CORE::rindex($str,$sub,$pos);
+    $bi = rindex($zen,$sbz,$pos);
+    $NG++ if $si != $bi;
+  }
+  print !$NG ? "ok" : "not ok", " 7\n";
+}
+
+
+
+

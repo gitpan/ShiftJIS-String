@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '0.09';
+$VERSION = '0.10';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -27,36 +27,21 @@ my @Z2H  = qw/kataZ2H kanaZ2H spaceZ2H/;
 @EXPORT_OK = @{ $EXPORT_TAGS{all} };
 @EXPORT = ();
 
-my $Char = '(?:[\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC])';
+my $Char = '(?:[\x81-\x9F\xE0-\xFC][\x00-\xFF]|[\x00-\xFF])';
+my $Apad = '(?:\A|[^\x81-\x9F\xE0-\xFC])(?:[\x81-\x9F\xE0-\xFC]{2})*?';
+my $Gpad = '(?:\G|[^\x81-\x9F\xE0-\xFC])(?:[\x81-\x9F\xE0-\xFC]{2})*?';
 
 ##
 ## issjis(LIST)
 ##
 sub issjis
 {
-   !grep !
-   /^(?:[\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC])*$/,
-   @_;
-}
-
-##
-## tolower(STRING)
-##
-sub tolower($)
-{
-  my $str = shift;
-  $str =~ s/\G($Char*?)([A-Z]+)/$1\L$2/g;
-  return $str;
-}
-
-##
-## toupper(STRING)
-##
-sub toupper($)
-{
-  my $str = shift;
-  $str =~ s/\G($Char*?)([a-z]+)/$1\U$2/g;
-  return $str;
+  for (@_){
+    my $str = $_;
+    $str =~ s/[\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]//g;
+    return '' if CORE::length($str);
+  }
+  return 1;
 }
 
 ##
@@ -65,7 +50,7 @@ sub toupper($)
 sub length($)
 {
   my $str = shift;
-  0 + $str =~ s/$Char//go;
+  return 0 + $str =~ s/$Char//go;
 }
 
 ##
@@ -73,8 +58,8 @@ sub length($)
 ## 
 sub strrev($)
 {
-    my $str = shift;
-    join '', reverse _splitchar($str);
+  my $str = shift;
+  join '', reverse _splitchar($str);
 }
 
 sub _splitchar($){ $_[0] =~ /$Char/go }
@@ -84,27 +69,20 @@ sub _splitchar($){ $_[0] =~ /$Char/go }
 ## 
 sub index($$;$)
 {
-  my($head);
-  my($str,$sub,$pos) = @_;
+  my $cnt = 0;
+  my($str,$sub) = @_;
+  my $len = &length($str);
+  my $pos = @_ == 3 ? $_[2] : 0;
   if($sub eq ""){
-    my $len = &length($str);
-    return
-      @_ == 3 ? 
-        $pos < 0    ? 0 :
-        $pos < $len ? $pos : $len
-      : 0;
+    return $pos <= 0 ? 0 : $len <= $pos ? $len : $pos;
   }
-  my $pat = quotemeta $sub;
-  if($pos && $pos > 0){
-    return -1 if $pos > &length($str);
-    ${ &substr(\$str,$pos) } =~ /^($Char*?)$pat/;
-    $head = $1;
-    defined $head ? $pos + &length($head) : -1;
-  } else {
-    $str =~ /^($Char*?)$pat/;
-    $head = $1;
-    defined $head ? &length($head) : -1;
-  }
+  return -1 if $pos > $len;
+  my $pat = quotemeta($sub);
+  $str =~ s/^$Char//o ? $cnt++ : croak
+    while CORE::length($str) && $cnt < $pos;
+  $str =~ s/^$Char//o ? $cnt++ : croak
+    while CORE::length($str) && $str !~ /^$pat/;
+  return CORE::length($str) ? $cnt : -1;
 }
 
 ##
@@ -112,22 +90,21 @@ sub index($$;$)
 ##
 sub rindex($$;$)
 {
-  my($head);
-  my($str,$sub,$pos) = @_;
+  my $cnt = 0;
+  my($str,$sub) = @_;
+  my $len = &length($str);
+  my $pos = @_ == 3 ? $_[2] : $len;
   if($sub eq ""){
-    my $len = &length($str);
-    return
-      @_ == 3 ? 
-        $pos < 0    ? 0 :
-        $pos < $len ? $pos : $len
-      : $len;
+    return $pos <= 0 ? 0 : $len <= $pos ? $len : $pos;
   }
-  return -1 if $pos && $pos < 0;
-  my $pat = quotemeta $sub;
-  (@_ == 3 ? ${ &substr(\$str, 0, $pos + &length($sub)) } : $str) =~
-     /^($Char*)$pat/;
-  $head = $1;
-  defined $head ? &length($head) : -1;
+  return -1 if $pos < 0;
+  my $pat = quotemeta($sub);
+  my $ret = -1;
+  while($cnt <= $pos && CORE::length($str)){
+    $ret = $cnt if $str =~ /^$pat/;
+    $str =~ s/^$Char//o ? $cnt++ : croak;
+  }
+  return $ret;
 }
 
 ##
@@ -135,15 +112,15 @@ sub rindex($$;$)
 ##
 sub strspn($$)
 {
-  my($str, $lst, %lst, $pos);
-  ($str, $lst) = @_;
-  $pos = 0;
+  my($str, $lst) = @_;
+  my $ret = 0;
+  my(%lst);
   @lst{ $lst=~ /$Char/go } = ();
   while($str =~ /($Char)/go){
     last if ! exists $lst{$1};
-    $pos++;
+    $ret++;
   }
-  return $pos;
+  return $ret;
 }
 
 ##
@@ -151,15 +128,15 @@ sub strspn($$)
 ##
 sub strcspn($$)
 {
-  my($str, $lst, %lst, $pos);
-  ($str, $lst) = @_;
-  $pos = 0;
+  my($str, $lst) = @_;
+  my $ret = 0;
+  my(%lst);
   @lst{ $lst=~ /$Char/go } = ();
   while($str =~ /($Char)/go){
     last if exists $lst{$1};
-    $pos++;
+    $ret++;
   }
-  return $pos;
+  return $ret;
 }
 
 ##
@@ -168,9 +145,11 @@ sub strcspn($$)
 ##
 sub substr($$;$$)
 {
-  my(@chars, $slen, $ini, $fin, $except);
-  my($str, $off, $len, $rep) = @_;
-  $slen = @chars = _splitchar(ref $str ? $$str : $str);
+  my($ini, $fin, $except);
+  my($arg, $off, $len, $rep) = @_;
+  my $str = ref $arg ? $$arg : $arg;
+
+  my $slen = &length($str);
   $except = 1 if $slen < $off;
   if(@_ == 2){$len = $slen - $off;}
   else {
@@ -187,15 +166,21 @@ sub substr($$;$$)
   $ini = $slen if $slen < $ini;
   $fin = $slen if $slen < $fin;
 
-  if(@_ > 3){
-     $_[0] = join '', @chars[0..$ini-1],$rep,@chars[$fin..@chars-1]
+  my $cnt  = 0;
+  my $plen = 0;
+  my $clen = 0;
+  while($str =~ /($Char)/go){
+    if   ($cnt < $ini) { $plen += CORE::length($1) }
+    elsif($cnt < $fin) { $clen += CORE::length($1) }
+    else               { last }
+    $cnt++;
   }
-  return ref $str
-    ? \ CORE::substr($$str,
-              CORE::length(join '', @chars[0..$ini-1]),
-              CORE::length(join '', @chars[$ini..$fin-1])
-      )
-    : join '', @chars[$ini..$fin-1]
+  if(@_ > 3){
+    $_[0] = CORE::substr($str, 0,      $plen) .$rep.
+            CORE::substr($str, $plen + $clen);
+  }
+  return ref $arg ? \ CORE::substr($$arg, $plen, $clen)
+                  :   CORE::substr($str,  $plen, $clen);
 }
 
 ##
@@ -217,29 +202,6 @@ sub strtr($$$;$$$)
   }
   &$coderef($str);
 }
-
-##
-## spaceZ2H(STRING)
-##
-sub spaceZ2H($)
-{
-  my $str = shift;
-  my $len = CORE::length(ref $str ? $$str : $str);
-  (ref $str ? $$str : $str) =~
-     s/\G($Char*?)\x81\x40/$1 /go;
-  ref $str ? abs($len - CORE::length $$str) : $str;
-};
-
-##
-## spaceH2Z(STRING)
-##
-sub spaceH2Z($)
-{
-  my $str = shift;
-  my $len = CORE::length(ref $str ? $$str : $str);
-  (ref $str ? $$str : $str) =~ s/ /\x81\x40/g;
-  ref $str ? abs($len - CORE::length $$str) : $str;
-};
 
 ##
 ## trclosure(SEARCHLIST, REPLACEMENTLIST; MODIFIER, PATTERN, TOPATTERN)
@@ -335,7 +297,8 @@ sub trclosure($$;$$$)
           exists $hash{$1} ? (++$cnt, $hash{$1}) : $1;
         }ge;
         ref $str ? $cnt : $str;
-      } : sub { croak "$PACKAGE: trclosure Error! Invalid Closure!\n" }
+      } :
+    sub { croak "$PACKAGE: trclosure Error! Invalid Closure!\n" }
 }
 
 ##
@@ -426,7 +389,47 @@ sub __expand
 }
 
 ##
-## Kana Letter
+## spaceH2Z(STRING)
+##
+sub spaceH2Z($) {
+  my $str = shift;
+  my $len = CORE::length(ref $str ? $$str : $str);
+  (ref $str ? $$str : $str) =~ s/ /\x81\x40/g;
+  ref $str ? abs($len - CORE::length $$str) : $str;
+};
+
+##
+## spaceZ2H(STRING)
+##
+## tolower(STRING)  and toupper(STRING)
+##
+my $spaceZ2H = trclosure('Å@', ' ');
+my $toupper  = trclosure('a-z', 'A-Z');
+my $tolower  = trclosure('A-Z', 'a-z');
+
+sub spaceZ2H($) { &$spaceZ2H(@_) }
+sub toupper($)  { &$toupper(@_) }
+sub tolower($)  { &$tolower(@_) }
+
+sub _spaceZ2H($) {
+  my $str = shift;
+  my $len = CORE::length(ref $str ? $$str : $str);
+  (ref $str ? $$str : $str) =~ s/($Gpad)\x81\x40/$1 /go;
+  ref $str ? abs($len - CORE::length $$str) : $str;
+};
+sub _toupper($) {
+  my $str = shift;
+  $str =~ s/($Gpad)([a-z]+)/$1\U$2/go;
+  return $str;
+}
+sub _tolower($) {
+  my $str = shift;
+  $str =~ s/($Gpad)([A-Z]+)/$1\L$2/go;
+  return $str;
+}
+
+##
+## Kana Letters
 ##
 my $kataTRE = '(?:[\xB3\xB6-\xC4\xCA-\xCE]\xDE|[\xCA-\xCE]\xDF)';
 my $hiraTRE = '(?:\x82\xA4\x81\x4A)';
@@ -541,12 +544,12 @@ Returns a reversed string.
 =item C<toupper(STRING)>
 
 Returns an uppercased string of C<STRING>.
-Alters half-width Latin characters C<a-z> only.
+Alters only half-width Latin characters C<a-z>.
 
 =item C<tolower(STRING)>
 
 Returns a lowercased string of C<STRING>.
-Alters half-width Latin characters C<A-Z> only.
+Alters only half-width Latin characters C<A-Z>.
 
 =back
 
@@ -966,6 +969,8 @@ Tomoyuki SADAHIRO
 =over 4
 
 =item L<ShiftJIS::Regexp>
+
+=item L<String::Multibyte>
 
 =back
 

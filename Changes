@@ -1,5 +1,8 @@
 Revision history for Perl module ShiftJIS::String.
 
+0.10  Sat Oct 06 11:38:08 2001
+    - improvement of internal.
+
 0.09  Sun Sep 02 22:08:15 2001
     - bug fix: length, index, rindex passed "" as an argument.
     - prototypes: any parameters (excluding those of issjis)

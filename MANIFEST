@@ -8,6 +8,7 @@ t/index.t
 t/issjis.t
 t/kana.t
 t/length.t
+t/long.t
 t/mkrange.t
 t/subst.t
 t/substr.t
