@@ -1,5 +1,13 @@
 Revision history for Perl module ShiftJIS::String.
 
+1.02  Sun Jul 20 12:35:10 2003
+    - changed INSTALLATION (cf. README).
+    - simplified Makefile.PL.
+    - modified how to build XSUB edition (sorry for inconvenience).
+      The purePerl-XSUB converter is now provided as two perl script files,
+      named "enableXS" and "disableXS".
+      (no longer <perl Makefile.PL xs> and <perl Makefile.PL noxs>.)
+
 1.01  Tue Apr 29 10:49:07 2003
     - added trim(), ltrim(), rtrim(), rspan(), rcspan().
     - fix: With Perl 5.003, index and rindex were wrong

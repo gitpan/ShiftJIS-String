@@ -1,9 +1,9 @@
-ShiftJIS::String: version 1.01
+ShiftJIS::String: version 1.02
 ==============
 
 NAME
 
-ShiftJIS::String - functions to manipulate Shift_JIS strings
+ShiftJIS::String - functions to manipulate Shift-JIS strings
 
 SYNOPSIS
 
@@ -20,7 +20,7 @@ DESCRIPTION
 
 This module provides some functions which emulate
 the corresponding CORE functions and will help someone
-to manipulate Shift_JIS string.
+to manipulate Shift-JIS string.
 
 * Functions other than length(), substr(), index(), and rindex()
 will have different names from those of the corresponding CORE:: functions.
@@ -34,35 +34,37 @@ To install this module type the following:
    make test
    make install
 
-If you have a C compiler and want to use the XS version,
-type the following:
+If you have a C compiler and want to use XSUB edition,
+type the following (!! "enableXS" must run before "Makefile.PL" !!):
 
-   perl Makefile.PL xs
+   perl enableXS
+   perl Makefile.PL
    make
    make test
    make install
 
-If you decide to install the NoXS version after trying to build the XS,
-type the following:
+If you decide to install pure Perl (i.e. non-XS) edition after trying
+to build XSUB, type the following:
 
    make clean
-   perl Makefile.PL noxs
+   perl disableXS
+   perl Makefile.PL
    make
    make test
    make install
 
 PREREQUISITES
 
-   Perl 5.003 or later for pure-Perl version
+   Perl 5.003 or later for pure Perl edition
    (Perl 5.005 or later Recommended.)
 
-   Perl 5.6 or later for XS version.
+   Perl 5.6 or later for XSUB edition.
 
 POD
 
-The documents for this module are written in Shift_JIS.
+The documents for this module are written in Shift-JIS.
 (The explanations are given in English in String.pod,
-but some sample codes include Shift_JIS literals.)
+but some sample codes include Shift-JIS literals.)
 The CPAN Archiver should make it unreadable.
 
 The HTML-ized PODs are provided in my website.

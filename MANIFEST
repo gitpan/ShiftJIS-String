@@ -3,11 +3,13 @@ Makefile.PL
 MANIFEST
 MANIFEST.XS
 README
+enableXS
+disableXS
 String.pod
 String.pod.jp
-String.xs.XS
+String.xsX
 String.pm
-String.pm.XS
+String.pmX
 samples/trans.txt
 t/alnum.t
 t/capture.t

@@ -1,7 +1,7 @@
 
 =head1 NAME (名称)
 
-ShiftJIS::String - Shift_JIS 文字列操作関数
+ShiftJIS::String - Shift-JIS 文字列操作関数
 
 =head1 概要
 
@@ -11,7 +11,7 @@ ShiftJIS::String - Shift_JIS 文字列操作関数
 
 =head1 本 POD について
 
-この POD は Shift_JIS で書かれています。
+この POD は Shift-JIS で書かれています。
 
 'C<あ>' が C<HIRAGANA LETTER A> に見えますか ?
 また、'C<\>' が C<REVERSE SOLIDUS> ではなく C<YEN SIGN> に見えますか ?
@@ -20,7 +20,7 @@ ShiftJIS::String - Shift_JIS 文字列操作関数
 
 =head1 詳細
 
-このモジュールは、Shift_JIS の文字列を扱うのに有用であろう
+このモジュールは、Shift-JIS の文字列を扱うのに有用であろう
 組み込み関数に類似した関数を提供します。
 
 =head1 関数
@@ -31,7 +31,7 @@ ShiftJIS::String - Shift_JIS 文字列操作関数
 
 =item C<issjis(LIST)>
 
-引数リストのすべての文字列が Shift_JIS として正しいか否かの真偽値を返します。
+引数リストのすべての文字列が Shift-JIS として正しいか否かの真偽値を返します。
 
 C<LIST> が一つ以上の不正な文字列を含んでいる場合、偽を返します。
 
@@ -204,7 +204,7 @@ C<SEARCHLIST> に直接文字範囲を使うことはできませんが、
 
 =item C<substr(SCALAR, OFFSET, LENGTH, REPLACEMENT)>
 
-組み込みの C<substr> と同様ですが Shift_JIS 文字列に対して働きます。
+組み込みの C<substr> と同様ですが Shift-JIS 文字列に対して働きます。
 
 第４引数として C<REPLACEMENT> を渡した場合は、
 C<SCALAR> のその部分を置換して、その部分の元の部分文字列を返します。
@@ -221,7 +221,7 @@ C<SCALAR> のその部分を置換して、その部分の元の部分文字列を返します。
         のように働きます。
 
 返り値の左辺値は（Perl組み込みの機能による部分文字列そのままに
-なっていますから、）Shift_JISに対応していません。従って、
+なっていますから、）Shift-JISに対応していません。従って、
 ２度目の代入や変更では期待通りの結果にならない可能性があります。
 
     $str = "0123456789";
@@ -301,7 +301,7 @@ B<注意!>
 第二例と第四例の比較からわかるように、
 バイト C<"\xB1"> は第一バイトとしては C<"\x83"> より小さいが、
 第二バイトとしては大きくなります。
-簡単に言えばバイナリ比較は Shift_JIS 文字順ではうまくいきません。
+簡単に言えばバイナリ比較は Shift-JIS 文字順ではうまくいきません。
 
 =item C<strEQ(LEFT-STRING, RIGHT-STRING)>
 
@@ -366,7 +366,7 @@ C<('+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 そして C<scalar mkrange('か-ご')> は C<'かがきぎくぐけげこご'>
 を返します。.
 
-Shift_JIS 文字の順序は以下のとおりです。
+Shift-JIS 文字の順序は以下のとおりです。
   C<0x00 .. 0x7F, 0xA1 .. 0xDF, 0x8140 .. 0x9FFC, 0xE040 .. 0xFCFC>.
 だから、C<mkrange('亜-腕')> は、第一水準の漢字すべてのリストを返します。
 
@@ -695,19 +695,19 @@ B<注：> C<kataH2Z> は C<kanaH2Z> の別名であり、機能に変わりはありません。
 
 =head1 注意事項
 
-このモジュールでは正しい Shift_JIS 文字列の文字は
+このモジュールでは正しい Shift-JIS 文字列の文字は
 以下の正規表現にマッチしなければなりません。
 
    [\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]
 
-外部リソースの文字列は、それが正しい Shift_JIS 文字列であると
+外部リソースの文字列は、それが正しい Shift-JIS 文字列であると
 分かっている場合を除いて C<issjis()> を用いて確認すべきです。
 
-正しくない Shift_JIS 文字列を使うと変な結果になることがあります。
-（正しくない Shift_JIS 文字列を使った場合、どんな結果になるか、
+正しくない Shift-JIS 文字列を使うと変な結果になることがあります。
+（正しくない Shift-JIS 文字列を使った場合、どんな結果になるか、
 何も決まっていませんので、何も期待してはいけません。）
 
-Shift_JIS の二バイト文字の中には、第二バイトが C<[\x40-\x7E]>、すなわち
+Shift-JIS の二バイト文字の中には、第二バイトが C<[\x40-\x7E]>、すなわち
 
    @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
 
@@ -719,13 +719,13 @@ Perl の構文解析では、このようなバイトについて
 なぜなら、第二バイトの C<0x5C> が閉じクォートをエスケープするからです。
 
 外部のファイル等から読み出した場合は、この問題は起こりませんが、
-スクリプトを Shift_JIS で書く時には十分な注意が必要です。
+スクリプトを Shift-JIS で書く時には十分な注意が必要です。
 
-Shift_JISのリテラル文字列を作るためには、
+Shift-JISのリテラル文字列を作るためには、
 シングルクォート風のヒアドク（C<E<lt>E<lt> ''>）や、
 メタ文字 C<\xhh> を使うほうがよいでしょう。
 
-Shift_JIS の第二バイトに出て来ないASCII図形文字（C<[\x21-\x3F]>）は
+Shift-JIS の第二バイトに出て来ないASCII図形文字（C<[\x21-\x3F]>）は
 以下の通り。
 
    !"#$%&'()*+,-./0123456789:;<=>?
@@ -738,9 +738,9 @@ Shift_JIS の第二バイトに出て来ないASCII図形文字（C<[\x21-\x3F]>）は
 
 =head1 著者
 
-Tomoyuki SADAHIRO （貞廣 知行）
+SADAHIRO Tomoyuki （貞廣 知行）
 
-  E<lt>SADAHIRO@cpan.orgE<gt>
+  SADAHIRO@cpan.org
 
   http://homepage1.nifty.com/nomenclator/perl/
 

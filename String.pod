@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-ShiftJIS::String - functions to manipulate Shift_JIS strings
+ShiftJIS::String - functions to manipulate Shift-JIS strings
 
 =head1 SYNOPSIS
 
@@ -11,7 +11,7 @@ ShiftJIS::String - functions to manipulate Shift_JIS strings
 
 =head1 ABOUT THIS POD
 
-This POD is written in Shift_JIS.
+This POD is written in Shift-JIS.
 
 Do you see 'C<‚ >' as C<HIRAGANA LETTER A>?
 or 'C<\>' as C<YEN SIGN>, not as C<REVERSE SOLIDUS>?
@@ -22,7 +22,7 @@ Otherwise you'd change your font to an appropriate one.
 
 This module provides some functions which emulate
 the corresponding C<CORE> functions and helps someone
-to manipulate multiple-byte character sequences in Shift_JIS.
+to manipulate multiple-byte character sequences in Shift-JIS.
 
 * 'Hankaku' and 'Zenkaku' mean 'halfwidth' and 'fullwidth' characters
 in Japanese, respectively.
@@ -36,7 +36,7 @@ in Japanese, respectively.
 =item C<issjis(LIST)>
 
 Returns a boolean indicating whether all the strings in the parameter list
-are legally encoded in Shift_JIS.
+are legally encoded in Shift-JIS.
 
 Returns false if C<LIST> includes one (or more) invalid string.
 
@@ -220,7 +220,7 @@ you can utilize C<mkrange()>.
 =item C<substr(SCALAR, OFFSET, LENGTH, REPLACEMENT)>
 
 It works like C<CORE::substr>, but
-using character semantics of Shift_JIS.
+using character semantics of Shift-JIS.
 
 If the C<REPLACEMENT> as the fourth parameter is specified, replaces
 parts of the C<SCALAR> and returns what was there before.
@@ -234,7 +234,7 @@ returned if a reference to a scalar variable is used as the first argument.
 
     CORE::substr($str,$off,$len) = $replace;
 
-The returned lvalue is not aware of Shift_JIS,
+The returned lvalue is not aware of Shift-JIS,
 then successive assignment may cause unexpected results.
 
     $str = "0123456789";
@@ -313,7 +313,7 @@ B<Caveat!>
 Compare the 2nd and the 4th examples.
 Byte C<"\xB1"> is lesser than byte C<"\x83"> as the leading bytes;
 while greater as the trailing bytes.
-Shortly, the ordering as binary is broken for the Shift_JIS codepoint order.
+Shortly, the ordering as binary is broken for the Shift-JIS codepoint order.
 
 =item C<strEQ(LEFT-STRING, RIGHT-STRING)>
 
@@ -373,7 +373,7 @@ C<('+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F')>
 and C<scalar mkrange('‚©-‚²')> returns C<'‚©‚ª‚«‚¬‚­‚®‚¯‚°‚±‚²'>.
 
-The order of Shift_JIS characters is:
+The order of Shift-JIS characters is:
   C<0x00 .. 0x7F, 0xA1 .. 0xDF, 0x8140 .. 0x9FFC, 0xE040 .. 0xFCFC>.
 So, mkrange('ˆŸ-˜r') returns the list of all characters in level 1 Kanji.
 
@@ -704,17 +704,17 @@ Converts C<"\x81\x40"> (ideographic space) to C<"\x20"> (space).
 
 =head1 CAVEAT
 
-A legal Shift_JIS character in this module
+A legal Shift-JIS character in this module
 must match the following regular expression:
 
    [\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]
 
 Any string from an external source should be checked by C<issjis()>
-function, excepting you know it is surely coded in Shift_JIS.
+function, excepting you know it is surely coded in Shift-JIS.
 
-Use of an illegal Shift_JIS string may lead to odd results.
+Use of an illegal Shift-JIS string may lead to odd results.
 
-Some Shift_JIS double-byte characters have a trailing byte
+Some Shift-JIS double-byte characters have a trailing byte
 in the range of C<[\x40-\x7E]>, viz.,
 
    @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
@@ -726,12 +726,12 @@ since its trailing byte C<0x5C> backslashes the closing quote.
 
 Such a problem doesn't arise when the string is gotten from
 any external resource.
-But writing the script containing Shift_JIS
+But writing the script containing Shift-JIS
 double-byte characters needs the greatest care.
 
 The use of single-quoted heredoc, C<E<lt>E<lt> ''>,
 or C<\xhh> meta characters is recommended
-in order to define a Shift_JIS string literal.
+in order to define a Shift-JIS string literal.
 
 The safe ASCII-graphic characters, C<[\x21-\x3F]>, are:
 
@@ -745,9 +745,9 @@ This module supposes C<$[> is always equal to 0, never 1.
 
 =head1 AUTHOR
 
-Tomoyuki SADAHIRO
+SADAHIRO Tomoyuki
 
-  E<lt>SADAHIRO@cpan.orgE<gt>
+  SADAHIRO@cpan.org
 
   http://homepage1.nifty.com/nomenclator/perl/
 

@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '1.01';
+$VERSION = '1.02';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -75,9 +75,9 @@ sub index($$;$) {
     return -1 if $len < $pos;
 
     my $sublen = CORE::length($sub);
-    $str =~ s/^$Char//o ? $cnt++ : croak "ShiftJIS::index"
+    $str =~ s/^$Char//o ? $cnt++ : croak "${PACKAGE}::index"
 	while CORE::length($str) && $cnt < $pos;
-    $str =~ s/^$Char//o ? $cnt++ : croak "ShiftJIS::index"
+    $str =~ s/^$Char//o ? $cnt++ : croak "${PACKAGE}::index"
 	while CORE::length($str) && CORE::substr($str,0,$sublen) ne $sub;
     return CORE::length($str) ? $cnt : -1;
 }
@@ -99,7 +99,7 @@ sub rindex($$;$) {
     my $ret = -1;
     while ($cnt <= $pos && CORE::length($str)) {
 	$ret = $cnt if CORE::substr($str,0,$sublen) eq $sub;
-	$str =~ s/^$Char//o ? $cnt++ : croak;
+	$str =~ s/^$Char//o ? $cnt++ : croak "${PACKAGE}::rindex";
     }
     return $ret;
 }
