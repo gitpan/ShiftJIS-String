@@ -4,9 +4,9 @@ MANIFEST
 MANIFEST.XS
 README
 String.pod
+String.xs.XS
 String.pm
 String.pm.XS
-String.xs.XS
 t/alnum.t
 t/index.t
 t/issjis.t
@@ -14,6 +14,8 @@ t/kana.t
 t/length.t
 t/long.t
 t/mkrange.t
+t/strcmp.t
+t/strsplit.t
 t/subst.t
 t/substr.t
 t/test.t

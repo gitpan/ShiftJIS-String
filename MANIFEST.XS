@@ -14,6 +14,8 @@ t/kana.t
 t/length.t
 t/long.t
 t/mkrange.t
+t/strcmp.t
+t/strsplit.t
 t/subst.t
 t/substr.t
 t/test.t

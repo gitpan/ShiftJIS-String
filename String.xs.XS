@@ -16,6 +16,7 @@
 /* Roman */
 #define isSJ_CNTRL(c)  ((0x00<=(c) && (c)<=0x1F) || (c)==0x7F)
 #define isSJ_SPACE(c)  ((c)==0x20)
+#define isSJ_WHITE(c)  ((c)==9 || (c)==10 || (c)==12 || (c)==13 || (c)==32)
 #define isSJ_LOWER(c)  (0x61<=(c) && (c)<=0x7A)
 #define isSJ_UPPER(c)  (0x41<=(c) && (c)<=0x5A)
 #define isSJ_BACKp(p)  ((*(p))==0x5C && ((*((p)+1)==0x5C) || (*((p)+1)==0x2D)))
@@ -47,6 +48,9 @@
        (c)==0x4A || (c)==0x4B || (c)==0x5B || (c)==0x75 || (c)==0x76)
 
 #define isSJ_ZSPACEp(p) (*(p)==0x81 && *((p)+1) == 0x40)
+
+#define isSJ_SPACEpc(p,ch) \
+       (((ch) == 1 && isSJ_WHITE(*(p))) || ((ch) == 2 && isSJ_ZSPACEp(p)))
 
 /* HANKAKU KANA */
 #define isSJ_HKPCT(c) ((0xA1<=(c) && (c)<=0xA5) || (c)==0xB0 || \
@@ -152,7 +156,6 @@ static char* strNchr (U8 * s, STRLEN byte, U8* mbc, int n)
 	if (memEQ(p,mbc,n)) return (char*)p;
     return NULL;
 }
-
 
 /*
  * internal for mkrange
@@ -350,6 +353,23 @@ static U8* strtr_tochar_ptr(U8* tbl, U8 row, U8 cell)
     return ip;
 }
 
+static int sjis_strcmp (U8 *sL, STRLEN lbyte, U8 *sR, STRLEN rbyte)
+{
+    U8 *pL, *pR, *eL, *eR;
+    int cL = 0, cR = 0;
+
+    eL = sL + lbyte;
+    eR = sR + rbyte;
+    for (pL = sL, pR = sR; pL < eL && pR < eR; pL += cL, pR += cR) {
+	cL = isSJ2BTp(pL,eL) ? 2 : 1;
+	cR = isSJ2BTp(pR,eR) ? 2 : 1;
+
+	if ( cL !=  cR) return (cL - cR);
+	if (*pL != *pR) return (*pL - *pR);
+	if (cL > 1 && pL[1] != pR[1]) return (pL[1] - pR[1]);
+    }
+    return (pL != eL ? 1 : pR != eR ? -1 : 0);
+}
 
 MODULE = ShiftJIS::String	PACKAGE = ShiftJIS::String
 
@@ -409,6 +429,7 @@ strrev(src)
     RETVAL = dst;
   OUTPUT:
     RETVAL
+
 
 SV*
 strspn(src, search)
@@ -475,7 +496,7 @@ index(src,sub,pos=-0)
     e = s + sbyte - (bbyte - 1); /* p must be followed by bbyte */
     for (p = s; p < e; ++p) {
 	if (ix ? cnt <= pos : pos <= cnt) {
-	    if (*p == *b && memEQ(p,b,bbyte)) {
+	    if (*p == *b && (bbyte == 1 || memEQ(p,b,bbyte))) {
 		RETVAL = cnt;
 		if (ix == 0) break;
 	    }
@@ -984,14 +1005,14 @@ mkrange(src, rev = &PL_sv_undef)
 	XPUSHs(dst);
     } else {
 	I32 dlen;
-	STRLEN c = 0;
+	int ch = 0;
 	d = (U8*)SvPV(dst,dbyte);
 	e = d + dbyte;
 	dlen = length(d, dbyte);
         EXTEND(SP, dlen);
-	for(p = d; p < e; p += c) {
-	    c = isSJ2BTp(p,e) ? 2 : 1;
-	    PUSHs(sv_2mortal(newSVpvn(p,c)));
+	for(p = d; p < e; p += ch) {
+	    ch = isSJ2BTp(p,e) ? 2 : 1;
+	    PUSHs(sv_2mortal(newSVpvn(p,ch)));
 	}
     }
 
@@ -1173,7 +1194,6 @@ strtr_mktable (search, replace, mod = "")
     STRLEN dbyte, fbyte, tbyte;
     U8 idx = 0, fr[2], to[2], tolast[2];
   CODE:
-
     f = (U8*)SvPV(search,  fbyte);
     fend = f + fbyte;
     t = (U8*)SvPV(replace, tbyte);
@@ -1281,5 +1301,179 @@ strtr_mktable (search, replace, mod = "")
 
     SvCUR_set(dst, dbyte);
     RETVAL = dst;
+  OUTPUT:
+    RETVAL
+
+
+
+void
+strsplit (separator, src, lim = 0)
+    SV *separator;
+    SV *src;
+    I32 lim;
+  PROTOTYPE: $$;$
+  PREINIT:
+    U8 *s, *e, *p, *sep, *anchor, *last;
+    STRLEN byte, sepbyte;
+    bool wantarray;
+    I32 cnt = 0;
+    int ch  = 0;
+  PPCODE:
+    wantarray = (GIMME_V == G_ARRAY);
+
+    s = (U8*)SvPV(src, byte);
+
+    if (!byte) {
+	if (wantarray) XSRETURN_EMPTY; else XSRETURN_IV(0);
+    }
+
+    if (!separator || separator == &PL_sv_undef) { /* splitspace */
+	e = s + byte;
+
+        for (p = s; p < e; p += ch) {
+	    ch = isSJ2BTp(p,e) ? 2 : 1;
+	    if (!isSJ_SPACEpc(p,ch)) break;
+	}
+
+	for (anchor = p; (lim <= 0 || cnt < lim - 1) && p < e; p += ch) {
+	    ch = isSJ2BTp(p,e) ? 2 : 1;
+	    if (isSJ_SPACEpc(p,ch)) {
+		if (anchor != p) {
+		    ++cnt;
+		    if (wantarray)
+			XPUSHs(sv_2mortal(newSVpvn(anchor, p-anchor)));
+		}
+		anchor = p + ch;
+	    }
+	}
+
+        for (; p < e; p += ch) {
+	    ch = isSJ2BTp(p,e) ? 2 : 1;
+	    if (!isSJ_SPACEpc(p,ch)) break;
+	    anchor = p + ch;
+	}
+
+	if (!(lim == 0 && e == anchor)) {
+	    ++cnt;
+	    if (wantarray)
+		XPUSHs(sv_2mortal(newSVpvn(anchor, e-anchor)));
+	}
+
+	if (!wantarray) XPUSHs(sv_2mortal(newSViv(cnt)));
+    } /* end-splitspace */
+
+    else { /* other than splitspace */
+	sep = (U8*)SvPV(separator, sepbyte);
+
+	if (!sepbyte) { /* splitchar */
+	    if (wantarray)
+		EXTEND(SP, lim <= 0 ? (length(s,byte) + (lim < 0)) : lim);
+
+	    cnt = 0;
+	    p = s;
+	    e = s + byte;
+	    while ((lim <= 0 || cnt < lim - 1) && p < e) {
+		ch = isSJ2BTp(p,e) ? 2 : 1;
+		if (wantarray) PUSHs(sv_2mortal(newSVpvn(p,ch)));
+		p += ch, ++cnt;
+	    }
+	    if (p < e || lim < 0) {
+		++cnt;
+		if (wantarray) PUSHs(sv_2mortal(newSVpvn(p, e - p)));
+	    }
+	    if (!wantarray) XPUSHs(sv_2mortal(newSViv(cnt)));
+	} /* end splitchar */
+
+	else  { /* strsplit main */
+	    I32 i, numLastEmpty = 0;
+	    cnt = 0;
+	    p = anchor = s;
+	    e = s + byte;
+
+	    if (sepbyte <= byte) {
+		last = e - (sepbyte - 1);/* sepbyte after p */
+		while ((lim <= 0 || cnt < lim - 1) && p < last) {
+		    if (*p == *sep && (sepbyte == 1 || memEQ(p,sep,sepbyte))) {
+			if (lim == 0 && p == anchor) {
+			    ++numLastEmpty;
+			} else {
+			    for (i = 0; i < numLastEmpty; i++) {
+				++cnt;
+				if (wantarray)
+				    XPUSHs(sv_2mortal(newSVpvn("",0)));
+			    }
+			    numLastEmpty = 0;
+			    ++cnt;
+			    if (wantarray)
+				XPUSHs(sv_2mortal(newSVpvn(anchor, p-anchor)));
+			}
+			p += sepbyte;
+			anchor = p;
+		    }
+		    else p += isSJ2BTp(p,e) ? 2 : 1;
+		} /* end-while */
+
+		if (numLastEmpty && !(lim == 0 && e == anchor)) {
+		    for (i = 0; i < numLastEmpty; i++) {
+		        ++cnt;
+			if (wantarray)
+			    XPUSHs(sv_2mortal(newSVpvn("",0)));
+		    }
+		}
+	    } /* sepbyte <= byte */
+
+	    if (!(lim == 0 && e == anchor)) {
+		++cnt;
+		if (wantarray)
+		    XPUSHs(sv_2mortal(newSVpvn(anchor, e-anchor)));
+	    }
+	    if (!wantarray) XPUSHs(sv_2mortal(newSViv(cnt)));
+	} /* end strsplit main */
+    } /* end other-than splitspace */
+
+
+SV*
+strcmp (l_sv, r_sv)
+    SV *l_sv
+    SV *r_sv
+  PROTOTYPE: $$
+  ALIAS:
+    strEQ = 1
+    strNE = 2
+    strLT = 3
+    strLE = 4
+    strGT = 5
+    strGE = 6
+  PREINIT:
+    U8 *sL, *sR;
+    STRLEN lbyte, rbyte;
+    int rint;
+  CODE:
+    sL = (U8*)SvPV(l_sv, lbyte);
+    sR = (U8*)SvPV(r_sv, rbyte);
+    rint = sjis_strcmp(sL, lbyte, sR, rbyte);
+    switch (ix) {
+	case 1: /* EQ */
+	    RETVAL = boolSV(rint == 0);
+	    break;
+	case 2: /* NE */
+	    RETVAL = boolSV(rint != 0);
+	    break;
+	case 3: /* LT */
+	    RETVAL = boolSV(rint <  0);
+	    break;
+	case 4: /* LE */
+	    RETVAL = boolSV(rint <= 0);
+	    break;
+	case 5: /* GT */
+	    RETVAL = boolSV(rint >  0);
+	    break;
+	case 6: /* GE */
+	    RETVAL = boolSV(rint >= 0);
+	    break;
+        default:
+	    RETVAL = newSViv(rint < 0 ? -1 : rint > 0 ? 1 : 0);
+	    break;
+    }
   OUTPUT:
     RETVAL

@@ -133,7 +133,7 @@ print rindex(" a", "a"   ) eq CORE::rindex(" a", "a"   )
   print !$NG ? "ok" : "not ok", " 9\n";
 }
 
-print 1
+print $] < 5.005 || 1
   && index ("ba\0c", "a\0c")   eq CORE::index ("ba\0c", "a\0c")
   && rindex("ba\0c", "a\0c")   eq CORE::rindex("ba\0c", "a\0c")
   && index ("a\0c",  "a\0b")   eq CORE::index ("a\0c", "a\0b")

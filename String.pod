@@ -141,6 +141,42 @@ then successive assignment may cause unexpected results.
 
 =back
 
+=head2 Split
+
+=over 4
+
+=item C<strsplit(SEPARATOR, STRING)>
+
+=item C<strsplit(SEPARATOR, STRING, LIMIT)>
+
+This function emulates C<CORE::split>, but splits on the C<SEPARATOR> string,
+not by a pattern.
+If not in list context, only return the number of fields found,
+but does not split into the C<@_> array.
+
+  strsplit('||', '||‚ ‚¢‚¤‚¦‚¨||ƒpƒsƒvƒyƒ|||01234||');
+  # ('', '‚ ‚¢‚¤‚¦‚¨', 'ƒpƒsƒvƒyƒ|', '01234')
+
+  strsplit('^', 'Perl^épék^Camel');
+  # ('Perl', 'épék', 'Camel')
+
+If an empty string is specified as C<SEPARATOR>, splits the specified string
+into characters (similarly to C<CORE::split //, STRING, LIMIT>).
+
+  strsplit('', 'This is Perl.', 7);
+  # ('T', 'h', 'i', 's', ' ', 'i',  's Perl.')
+
+If an undefined value is specified as C<SEPARATOR>, splits the specified string
+on whitespace characters (including C<IDEOGRAPHIC SPACE>).
+Leading whitespace characters do not produce any field
+(similarly to C<CORE::split ' ', STRING, LIMIT>).
+
+  strsplit(undef, ' @ This  is @ Perl.');
+  # ('This', 'is', 'Perl.')
+
+
+=back
+
 =head2 Character Range
 
 =over 4
@@ -450,6 +486,61 @@ in the specified string and returns the converted string.
 
 Converts ideographic space (full-width) to space (half-width)
 in the specified string and returns the converted string.
+
+=back
+
+=head2 Compare
+
+=over 4
+
+=item C<strcmp(LEFT-STRING, RIGHT-STRING)>
+
+Returns 1 (when C<LEFT-STRING> is greater than C<RIGHT-STRING>)
+or 0 (when C<LEFT-STRING> is equal to C<RIGHT-STRING>)
+or -1 (when C<LEFT-STRING> is lesser than C<RIGHT-STRING>).
+
+The order is roughly as shown the following list.
+
+    JIS X 0201 Roman, JIS X 0201 Kana, then JIS X 0208 Kanji (Zenkaku).
+
+For example,
+C<0x41> as C<'A'> is lesser than C<0xB1> as C<'±'>.
+C<0xB1> as C<'±'> is lesser than C<0x8341> as C<'ƒA'>.
+C<0x8341> as C<'ƒA'> is lesser than C<0x8383> as C<'ƒƒ'>.
+C<0x8383> as C<'ƒƒ'> is lesser than C<0x83B1> as C<'ƒ±'> (greek Tau).
+
+B<Caveat!> Compare the 2nd and the 4th examples.
+Byte C<"\xB1"> is lesser than byte C<"\x83"> as the leading bytes;
+while greater as the trailing bytes.
+Shortly, the ordering as binary is broken for the Shift_JIS codepoint order.
+
+=item C<strEQ(LEFT-STRING, RIGHT-STRING)>
+
+Returns a boolean whether C<LEFT-STRING> is equal to C<RIGHT-STRING>.
+
+B<Note:> C<strEQ> is an expensive equivalent of the C<CORE>'s C<eq> operator.
+
+=item C<strNE(LEFT-STRING, RIGHT-STRING)>
+
+Returns a boolean whether C<LEFT-STRING> is not equal to C<RIGHT-STRING>.
+
+B<Note:> C<strNE> is an expensive equivalent of the C<CORE>'s C<ne> operator.
+
+=item C<strLT(LEFT-STRING, RIGHT-STRING)>
+
+Returns a boolean whether C<LEFT-STRING> is lesser than C<RIGHT-STRING>.
+
+=item C<strLE(LEFT-STRING, RIGHT-STRING)>
+
+Returns a boolean whether C<LEFT-STRING> is lesser than or equal to C<RIGHT-STRING>.
+
+=item C<strGT(LEFT-STRING, RIGHT-STRING)>
+
+Returns a boolean whether C<LEFT-STRING> is greater than C<RIGHT-STRING>.
+
+=item C<strGE(LEFT-STRING, RIGHT-STRING)>
+
+Returns a boolean whether C<LEFT-STRING> is greater than or equal to C<RIGHT-STRING>.
 
 =back
 

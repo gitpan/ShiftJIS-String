@@ -61,4 +61,3 @@ print $try."AA" eq toupper($try."aA")
   ? "ok" : "not ok", " 18\n";
 print $try."aa" eq tolower($try."aA")
   ? "ok" : "not ok", " 19\n";
-
