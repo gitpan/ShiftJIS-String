@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '0.17';
+$VERSION = '0.18';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -13,14 +13,14 @@ require AutoLoader;
 @ISA = qw(Exporter DynaLoader);
 
 %EXPORT_TAGS = (
-    issjis => [ qw/issjis/ ],
-    string => [ qw/length index rindex strspn strcspn strrev substr strsplit/],
-    cmp    => [ qw/strcmp strEQ strNE strLT strLE strGT strGE strxfrm/],
-    ctype  => [ qw/toupper tolower/ ],
-    tr     => [ qw/mkrange strtr trclosure/ ],
-    kana   => [ qw/hi2ka ka2hi hiXka/ ],
-    H2Z    => [ qw/kataH2Z kanaH2Z spaceH2Z/ ],
-    Z2H    => [ qw/kataZ2H kanaZ2H spaceZ2H/ ],
+    issjis => [qw/issjis/],
+    string => [qw/length index rindex strspn strcspn strrev substr strsplit/],
+    'cmp'  => [qw/strcmp strEQ strNE strLT strLE strGT strGE strxfrm/],
+    ctype  => [qw/toupper tolower/],
+    'tr'   => [qw/mkrange strtr trclosure/],
+    kana   => [qw/hi2ka ka2hi hiXka/],
+    H2Z    => [qw/kataH2Z kanaH2Z spaceH2Z/],
+    Z2H    => [qw/kataZ2H kanaZ2H spaceZ2H/],
 );
 
 $EXPORT_TAGS{all}  = [ map @$_, values %EXPORT_TAGS ];
@@ -76,15 +76,14 @@ sub trclosure($$;$$$) {
     $r = $[ <= CORE::index($mod, 'r');
     $R = $[ <= CORE::index($mod, 'R');
 
-    if (! $noxs && ! ref $fr && ! ref $to && !defined $re && !defined $tore) {
+    if (! $noxs && !ref $fr && !ref $to && !defined $re && !defined $tore) {
 	if (!$R) {
 	    $fr = mkrange($fr, $r);
 	    $to = mkrange($to, $r);
 	}
 	my $trans = mktrans($fr, $to, $mod);
 	return sub {
-	    my $src = shift;
-	    strtr_light($src, $trans, $mod);
+	    strtr_light($_[0], $trans, $mod);
 	};
     }
 

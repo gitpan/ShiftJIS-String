@@ -1,4 +1,4 @@
-A version 0.17
+A version 0.18
 ==============
 
 NAME
@@ -7,11 +7,14 @@ ShiftJIS::String - functions to manipulate Shift_JIS encoded strings
 
 SYNOPSIS
 
-  use ShiftJIS::String qw(substr index length);
-  $str = 'プログラミング Perl';
-  $len = length(substr($str, 2 + index($str, 'ラミ')));
-   # $len == 7, length in characters of 'ング Perl'.
-   # CORE::length can be used to get the length in bytes.
+  use ShiftJIS::String qw(length substr index rindex);
+
+  $str = 'プログラミング-Perl';
+  $sub = substr($str, index($str, 'ラミ') + length('ラミ'));
+
+   # $sub eq 'ング-Perl'.
+   # If you want to use byte-oriented functions after importing,
+   # prefix the core function name with 'CORE::', like CORE::length.
 
 DESCRIPTION
 

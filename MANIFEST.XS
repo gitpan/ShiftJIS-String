@@ -7,6 +7,7 @@ String.pod
 String.xs
 String.pm
 String.pm.NXS
+samples/trans.txt
 t/alnum.t
 t/index.t
 t/issjis.t

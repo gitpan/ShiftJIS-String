@@ -336,10 +336,10 @@ B<MODIFIER>
     # counts all Kana letters in $str. 
 
   $onlykana = strtr($str, 'ぁ-んァ-ヶｦ-ﾟ', '', 'cd');
-    # deletes all characters except Kana. 
+    # deletes all characters except Kana letters. 
 
   strtr(\$str, " \x81\x40\n\r\t\f", '', 'd');
-    # deletes all whitespace characters including full-width space
+    # deletes all whitespace characters including IDEOGRAPHIC SPACE.
 
   strtr("おかかうめぼし　ちちとはは", 'ぁ-ん', '', 's');
     # output: おかうめぼし　ちとは
@@ -348,7 +348,7 @@ B<MODIFIER>
     # output: ＃の＃いすぎは＃しい
 
 If C<'R'> modifier is specified, C<'-'> is not evaluated as a meta character
-but hyphen itself like in C<tr'''>. Compare:
+but C<HYPHEN-MINUS> itself like in C<tr'''>. Compare:
 
   strtr("90 - 32 = 58", "0-9", "A-J");
     # output: "JA - DC = FI"
@@ -360,7 +360,7 @@ but hyphen itself like in C<tr'''>. Compare:
 
 If C<'r'> modifier is specified, you are allowed to use reverse
 character ranges. For example, C<strtr($str, "0-9", "9-0", "r")>
-is identical to C<strtr($str, "0123456789", "9876543210")>.
+is equivalent to C<strtr($str, "0123456789", "9876543210")>.
 
   strtr($text, '亜-腕', '腕-亜', "r");
     # Your text may seem to be clobbered.
@@ -409,7 +409,7 @@ B<Caching the conversion table>
 If C<'o'> modifier is specified, the conversion table is cached internally.
 e.g.
 
-  foreach(@hiragana_strings){
+  foreach (@hiragana_strings) {
     print strtr($_, 'ぁ-ん', 'ァ-ン', 'o');
   }
   # katakana strings are printed
@@ -418,7 +418,7 @@ will be almost as efficient as this:
 
   $hiragana_to_katakana = trclosure('ぁ-ん', 'ァ-ン');
 
-  foreach(@hiragana_strings){
+  foreach (@hiragana_strings) {
     print &$hiragana_to_katakana($_);
   }
 
@@ -426,7 +426,7 @@ You can use whichever you like.
 
 Without C<'o'>,
 
-  foreach(@hiragana_strings){
+  foreach (@hiragana_strings) {
     print strtr($_, 'ぁ-ん', 'ァ-ン');
   }
 

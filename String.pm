@@ -4,21 +4,21 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '0.17';
+$VERSION = '0.18';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
 @ISA = qw(Exporter);
 
 %EXPORT_TAGS = (
-    issjis => [ qw/issjis/ ],
-    string => [ qw/length index rindex strspn strcspn strrev substr strsplit/],
-    cmp    => [ qw/strcmp strEQ strNE strLT strLE strGT strGE strxfrm/],
-    ctype  => [ qw/toupper tolower/ ],
-    tr     => [ qw/mkrange strtr trclosure/ ],
-    kana   => [ qw/hi2ka ka2hi hiXka/ ],
-    H2Z    => [ qw/kataH2Z kanaH2Z spaceH2Z/ ],
-    Z2H    => [ qw/kataZ2H kanaZ2H spaceZ2H/ ],
+    issjis => [qw/issjis/],
+    string => [qw/length index rindex strspn strcspn strrev substr strsplit/],
+    'cmp'  => [qw/strcmp strEQ strNE strLT strLE strGT strGE strxfrm/],
+    ctype  => [qw/toupper tolower/],
+    'tr'   => [qw/mkrange strtr trclosure/],
+    kana   => [qw/hi2ka ka2hi hiXka/],
+    H2Z    => [qw/kataH2Z kanaH2Z spaceH2Z/],
+    Z2H    => [qw/kataZ2H kanaZ2H spaceZ2H/],
 );
 
 $EXPORT_TAGS{all}  = [ map @$_, values %EXPORT_TAGS ];
