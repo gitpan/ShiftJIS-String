@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..57\n"; }
+BEGIN { $| = 1; print "1..3\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use ShiftJIS::String qw(strtr spaceH2Z spaceZ2H);
 $^W = 1;
@@ -23,16 +23,20 @@ print "ok 1\n";
   my($pos,$si, $bi);
 
   my $n = 1;
-
+  my $NG;
+  $NG = 0;
   for $pos (-10..18){
     $si = index($str,$sub,$pos);
     $bi = ShiftJIS::String::index($zen,$sbz,$pos);
-    print $si == $bi ? "ok" : "not ok", " ", ++$n, "\n";
+    $NG++ if $si != $bi;
   }
+  print !$NG ? "ok" : "not ok", " 2\n";
 
+  $NG = 0;
   for $pos (-10..16){
     $si = rindex($str,$sub,$pos);
     $bi = ShiftJIS::String::rindex($zen,$sbz,$pos);
-    print $si == $bi ? "ok" : "not ok", " ", ++$n, "\n";
+    $NG++ if $si != $bi;
   }
+  print !$NG ? "ok" : "not ok", " 3\n";
 }

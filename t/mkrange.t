@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..10\n"; }
+BEGIN { $| = 1; print "1..12\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use ShiftJIS::String qw(strtr spaceH2Z spaceZ2H);
 
@@ -34,3 +34,7 @@ print ShiftJIS::String::mkrange("0-9",1) eq "0123456789"
   ? "ok 9\n" : "not ok 9\n";
 print ShiftJIS::String::mkrange("9-0",1) eq "9876543210"
   ? "ok 10\n" : "not ok 10\n";
+print ShiftJIS::String::mkrange('•\-') eq '•\-'
+  ? "ok 11\n" : "not ok 11\n";
+print ShiftJIS::String::mkrange('ab-') eq 'ab-'
+  ? "ok 12\n" : "not ok 12\n";

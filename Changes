@@ -1,5 +1,10 @@
 Revision history for Perl module ShiftJIS::String.
 
+0.07  Fri Jun  8 22:11:38 2001
+    - now runs on perl 5.003 (maybe). (tested on Active Perl 316)
+    - bug fix (mkrange)
+    - modify t/subst.t (thank you, Andreas Marcel Riechert)
+
 0.06  Wed Jun  6 22:11:38 2001
     - add README. (thank you, Andreas Marcel Riechert)
 

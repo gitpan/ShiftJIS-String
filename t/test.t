@@ -78,8 +78,8 @@ print "アイウエオabc-125pqr-xyz" eq ShiftJIS::String::tolower($str)
   my $frstr2 = "FAX ：0124-51-5368\n";
   my $tostr2 = "FAX ：〇一二四－五一－五三六八\n";
 
-  my $restr1 = $digit_tr->($frstr1);
-  my $restr2 = $digit_tr->($frstr2);
+  my $restr1 = &$digit_tr($frstr1);
+  my $restr2 = &$digit_tr($frstr2);
 
   print $tostr1 eq $restr1 ? "ok 15\n" : "not ok 15\n";
   print $tostr2 eq $restr2 ? "ok 16\n" : "not ok 16\n";

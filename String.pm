@@ -17,7 +17,7 @@ require Exporter;
   kataH2Z kanaH2Z kataZ2H kanaZ2H hi2ka ka2hi hiXka spaceH2Z spaceZ2H
 );
 
-$VERSION = '0.06';
+$VERSION = '0.07';
 
 my $Char = '(?:[\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC])';
 
@@ -192,13 +192,15 @@ my %Cache;
 
 sub strtr {
   my $str = shift;
+  my $coderef;
   if(defined $_[2] && $_[2] =~ /o/){
     my $k = join "\xFF", @_;
-    ($Cache{$k} ||= trclosure(@_))->($str);
+    $coderef = ($Cache{$k} ||= trclosure(@_) );
   }
   else {
-    trclosure(@_)->($str);
+    $coderef = trclosure(@_);
   }
+  &$coderef($str);
 }
 
 sub spaceZ2H {
@@ -231,7 +233,7 @@ sub trclosure {
   if(ref $fr){
     @fr = @$fr;
     $re = defined $re ? "$re|$Char" :
-       join('|', map(quotemeta, @$fr), $Char);
+       join('|', map(quotemeta($_), @$fr), $Char);
   } else {
     $fr = scalar mkrange($fr, $r) unless $R;
     $re = defined $re ? "$re|$Char" : $Char;
@@ -240,7 +242,7 @@ sub trclosure {
   if(ref $to){
     @to = @$to;
     $tore = defined $tore ? "$tore|$Char" :
-       join('|', map(quotemeta, @$to), $Char);
+       join('|', map(quotemeta($_), @$to), $Char);
   } else {
     $to = scalar mkrange($to, $r) unless $R;
     $tore = defined $tore ? "$tore|$Char" : $re;
@@ -324,9 +326,8 @@ sub mkrange{
   my($s, @retv, $range);
   my($self,$rev) = @_;
   $self =~ s/^-/\\-/;
-  $self =~ s/\\?-$/\\-/;
   $range = 0;
-  foreach $s ($self =~ /\\\\|\\-|$Char/go){
+  foreach $s ($self =~ /\G(?:\\\\|\\-|$Char)/go){
     if($range){
       if   ($s eq '\\-') {$s = '-'}
       elsif($s eq '\\\\'){$s = '\\'}
@@ -342,6 +343,7 @@ sub mkrange{
       else		 {push @retv, $s }
     }
   }
+  if($range) {push @retv, '-' }
   wantarray ? @retv : @retv ? join('', @retv) : '';
 }
 
@@ -450,13 +452,13 @@ my $hiXka = trclosure($kataZ.$hiraZ, $hiraZ.$kataZ, 'R', $hiraTRE);
 my $hi2ka = trclosure($hiraZ, $kataZ, 'R', $hiraTRE);
 my $ka2hi = trclosure($kataZ, $hiraZ, 'R', $hiraTRE);
 
-sub kataH2Z { $kataH2Z->(@_) }
-sub kanaH2Z { $kataH2Z->(@_) }
-sub kataZ2H { $kataZ2H->(@_) }
-sub kanaZ2H { $kanaZ2H->(@_) }
-sub hiXka   { $hiXka -> (@_) }
-sub hi2ka   { $hi2ka -> (@_) }
-sub ka2hi   { $ka2hi -> (@_) }
+sub kataH2Z { &$kataH2Z(@_) }
+sub kanaH2Z { &$kataH2Z(@_) }
+sub kataZ2H { &$kataZ2H(@_) }
+sub kanaZ2H { &$kanaZ2H(@_) }
+sub hiXka   { &$hiXka(@_) }
+sub hi2ka   { &$hi2ka(@_) }
+sub ka2hi   { &$ka2hi(@_) }
 
 1;
 __END__
@@ -776,7 +778,7 @@ anonymous arrays as C<SEARCHLIST> and/or C<REPLACEMENTLIST> as follows.
 
 B<Caching the conversion table>
 
-If 'o' modifier is specified, the conversion table is cached internally.
+If C<'o'> modifier is specified, the conversion table is cached internally.
 e.g.
 
   foreach(@hiragana_strings){
@@ -794,7 +796,7 @@ will be almost as efficient as this:
 
 You can use whichever you like.
 
-Without 'o',
+Without C<'o'>,
 
   foreach(@hiragana_strings){
     print strtr($_, 'ぁ-ん', 'ァ-ン');
@@ -823,8 +825,8 @@ By use of this code ref, you can save yourself time
 as you need not specify the parameter list every time.
 
   my $digit_tr = trclosure("1234567890-", "一二三四五六七八九〇－");
-  print &$digit_tr("TEL ：0124-45-6789\n");
-  print &$digit_tr("FAX ：0124-51-5368\n");
+  print &$digit_tr ("TEL ：0124-45-6789\n"); # ok to perl 5.003
+  print $digit_tr->("FAX ：0124-51-5368\n"); # perl 5.004 or better
 
   # output:
   # 電話：〇一二四－四五－六七八九
@@ -895,22 +897,22 @@ function, excepting you know it is surely encoded in Shift_JIS.
 If an illegal Shift_JIS string is specified,
 the result should be unexpectable.
 
-Some Shift_JIS double-byte character have one of C<[\x40-\x7E]>
+Some Shift_JIS double-byte characters have one of C<[\x40-\x7E]>
 as the trail byte.
 
    @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
 
-Perl lexer doesn't take any care to these characters,
+The Perl lexer doesn't take any care to these characters,
 so they sometimes make trouble.
-e.g. the quoted literal C<"表"> cause fatal error,
-since its trail byte C<0x5C> escapes the closing quote.
+e.g. the quoted literal C<"表"> causes fatal error,
+since its trail byte C<0x5C> backslashes the closing quote.
 
 Such a problem doesn't arise when the string is gotten from
 any external resource. 
-But writing the script containing the Shift_JIS
-double-byte character needs the greatest care.
+But writing the script containing Shift_JIS
+double-byte characters needs the greatest care.
 
-The use of single-quoted heredoc C<E<lt>E<lt> ''>
+The use of single-quoted heredoc, C<E<lt>E<lt> ''>,
 or C<\xhh> meta characters is recommended
 in order to define a Shift_JIS string literal.
 

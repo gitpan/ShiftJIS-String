@@ -10,8 +10,8 @@ SYNOPSIS
 
   use ShiftJIS::String qw(substr index length);
   $str = 'プログラミング Perl';
-  $len = length(substr($str, index($str, 'ラミ')));
-   # $len == 9, length in characters of 'ラミング Perl'.
+  $len = length(substr($str, 2 + index($str, 'ラミ')));
+   # $len == 7, length in characters of 'ング Perl'.
    # CORE::length should be used to get length in bytes.
 
 DESCRIPTION

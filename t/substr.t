@@ -27,22 +27,24 @@ print "ok 1\n";
 
   $NG = 0;
   for $i (-10..10){
+    next if 5.004 > $] && $i < -8;
     local $^W = 0;
     my $s = substr($str,$i);
     my $t = ShiftJIS::String::substr($zen,$i);
     for($s,$t){$_ = 'undef' if ! defined $_;}
-    ++$NG unless $s eq $printZ2H->($t);
+    ++$NG unless $s eq &$printZ2H($t);
   }
   print ! $NG ? "ok 2\n" : "not ok 2\n";
 
   $NG = 0;
   for $i (-10..10){
+    next if 5.004 > $] && $i < -8;
     for $j (undef,-10..10){
       local $^W = 0;
       my $s = substr($str,$i,$j);
       my $t = ShiftJIS::String::substr($zen,$i,$j);
       for($s,$t){$_ = 'undef' if ! defined $_;}
-      ++$NG unless $s eq $printZ2H->($t);
+      ++$NG unless $s eq &$printZ2H($t);
     }
   }
   print ! $NG ? "ok 3\n" : "not ok 3\n";
@@ -54,7 +56,7 @@ print "ok 1\n";
     my $t = $zen;
     substr($s,$i) = "RE";
     ${ ShiftJIS::String::substr(\$t,$i) } = "‚q‚d";
-    ++$NG unless $s eq $printZ2H->($t);
+    ++$NG unless $s eq &$printZ2H($t);
   }
   print ! $NG ? "ok 4\n" : "not ok 4\n";
 
@@ -66,20 +68,22 @@ print "ok 1\n";
       my $t = $zen;
       substr($s,$i,$j) = "RE";
       ${ ShiftJIS::String::substr(\$t,$i,$j) } = "‚q‚d";
-      ++$NG unless $s eq $printZ2H->($t);
+      ++$NG unless $s eq &$printZ2H($t);
     }
   }
   print ! $NG ? "ok 5\n" : "not ok 5\n";
 
   $NG = 0;
   for $i (-8..8){
+    last if 5.005 > $];
     for $j (-10..10){
       local $^W = 0;
       my $s = $str; 
       my $t = $zen;
-      my $core = substr($s,$i,$j,"OK");
+      my $core;
+      eval '$core = substr($s,$i,$j,"OK")';
       my $sjis = ShiftJIS::String::substr($t,$i,$j,"‚n‚j");
-      ++$NG unless $s eq $printZ2H->($t) && $core eq $printZ2H->($sjis);
+      ++$NG unless $s eq &$printZ2H($t) && $core eq &$printZ2H($sjis);
     }
   }
   print ! $NG ? "ok 6\n" : "not ok 6\n";
