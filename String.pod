@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-ShiftJIS::String - functions to manipulate Shift_JIS encoded strings
+ShiftJIS::String - functions to manipulate Shift_JIS strings
 
 =head1 SYNOPSIS
 
@@ -11,7 +11,7 @@ ShiftJIS::String - functions to manipulate Shift_JIS encoded strings
 
 =head1 ABOUT THIS POD
 
-This POD is written in Shift_JIS encoding.
+This POD is written in Shift_JIS.
 
 Do you see 'C<Ç†>' as C<HIRAGANA LETTER A>?
 or 'C<\>' as C<YEN SIGN>, not as C<REVERSE SOLIDUS>?
@@ -21,11 +21,11 @@ Otherwise you'd change your font to an appropriate one.
 =head1 DESCRIPTION
 
 This module provides some functions which emulate
-the corresponding C<CORE> functions and helps someone 
-to manipulate multiple-byte character sequences in Shift_JIS encoding.
+the corresponding C<CORE> functions and helps someone
+to manipulate multiple-byte character sequences in Shift_JIS.
 
-* 'Hankaku' and 'Zenkaku' mean 'halfwidth' and 'fullwidth' characters 
-in Japanese, respectively. 
+* 'Hankaku' and 'Zenkaku' mean 'halfwidth' and 'fullwidth' characters
+in Japanese, respectively.
 
 =head1 FUNCTIONS
 
@@ -36,7 +36,7 @@ in Japanese, respectively.
 =item C<issjis(LIST)>
 
 Returns a boolean indicating whether all the strings in the parameter list
-are legally encoded in Shift_JIS.
+are legally coded in Shift_JIS.
 
 =back
 
@@ -70,43 +70,42 @@ Returns a reversed string (having all characters in the opposite order).
 
 Returns the position of the first occurrence
 of C<SUBSTR> in C<STRING> at or after C<POSITION>.
-If C<POSITION> is omitted, starts searching 
-from the beginning of the string. 
+If C<POSITION> is omitted, starts searching
+from the beginning of the string.
 
-If the substring is not found, returns -1. 
+If the substring is not found, returns -1.
 
 =item C<rindex(STRING, SUBSTR)>
 
 =item C<rindex(STRING, SUBSTR, POSITION)>
 
-Returns the position of the last occurrence 
-of C<SUBSTR> in C<STRING> at or after C<POSITION>.
-If C<POSITION> is specified, returns the last 
-occurrence at or before that position. 
+Returns the position of the last occurrence of C<SUBSTR> in C<STRING>.
+If C<POSITION> is specified, returns the last
+occurrence at or before that position.
 
-If the substring is not found, returns -1. 
+If the substring is not found, returns -1.
 
 =item C<strspn(STRING, SEARCHLIST)>
 
-Returns returns the position of the first occurrence of 
+Returns returns the position of the first occurrence of
 any character not contained in the search list.
 
   strspn("+0.12345*12", "+-.0123456789");
-  # returns 8. 
+  # returns 8.
 
 If the specified string does not contain any character
 in the search list, returns 0.
 
-The string consists of characters in the search list, 
+The string consists of characters in the search list,
 the returned value equals the length of the string.
 
 =item C<strcspn(STRING, SEARCHLIST)>
 
-Returns returns the position of the first occurrence of 
+Returns returns the position of the first occurrence of
 any character contained in the search list.
 
   strcspn("PerlÇÕñ îíÇ¢ÅB", "ê‘ê¬â©îíçï");
-  # returns 6. 
+  # returns 6.
 
 If the specified string does not contain any character
 in the search list,
@@ -125,13 +124,13 @@ the returned value equals the length of the string.
 =item C<substr(SCALAR, OFFSET, LENGTH, REPLACEMENT)>
 
 It works like C<CORE::substr>, but
-using character semantics of Shift_JIS encoding.
+using character semantics of Shift_JIS.
 
 If the C<REPLACEMENT> as the fourth parameter is specified, replaces
 parts of the C<SCALAR> and returns what was there before.
 
 You can utilize the lvalue reference,
-returned if a reference of scalar variable is used as the first argument.
+returned if a reference to a scalar variable is used as the first argument.
 
     ${ &substr(\$str,$off,$len) } = $replace;
 
@@ -258,9 +257,9 @@ as long as your C<cmp> doesn't use any locale other than that of Perl.
 Returns the character list (not in list context, as a concatenated string)
 gained by parsing the specified character range.
 
-A character range is specified with a C<HYPHEN-MINUS>, C<'-'>. The backslashed 
+A character range is specified with a C<HYPHEN-MINUS>, C<'-'>. The backslashed
 combinations C<'\-'> and C<'\\'> are used instead of the characters
-C<'-'> and C<'\'>, respectively. The hyphen at the beginning or 
+C<'-'> and C<'\'>, respectively. The hyphen at the beginning or
 end of the range is also evaluated as the hyphen itself.
 
 For example, C<mkrange('+\-0-9a-fA-F')> returns
@@ -291,9 +290,9 @@ otherwise, reverse character ranges are croaked.
 =item C<strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST, MODIFIER, PATTERN, TOPATTERN)>
 
 Transliterates all occurrences of the characters found in the search list
-with the corresponding character in the replacement list. 
+with the corresponding character in the replacement list.
 
-If a reference of scalar variable is specified as the first argument,
+If a reference to a scalar variable is specified as the first argument,
 returns the number of characters replaced or deleted;
 otherwise, returns the transliterated string and
 the specified string is unaffected.
@@ -311,9 +310,7 @@ B<SEARCHLIST and REPLACEMENTLIST>
 Character ranges such as C<"Çü-Ç®"> (internally utilizing C<mkrange()>)
 are supported.
 
-If the C<REPLACEMENTLIST> is empty (specified as C<''>, not C<undef>,
-because the use of uninitialized value causes warning under -w option),
-the C<SEARCHLIST> is replicated. 
+If the C<REPLACEMENTLIST> is empty, the C<SEARCHLIST> is replicated.
 
 If the replacement list is shorter than the search list,
 the final character in the replacement list
@@ -321,7 +318,7 @@ is replicated till it is long enough
 (but differently works when the 'd' modifier is used).
 
   strtr(\$str, 'Çü-ÇÒÉ@-Éñ¶-ﬂ', '#');
-    # replaces all Kana letters by '#'. 
+    # replaces all Kana letters by '#'.
 
 B<MODIFIER>
 
@@ -333,10 +330,10 @@ B<MODIFIER>
     o   Caches the conversion table internally.
 
   strtr(\$str, 'Çü-ÇÒÉ@-Éñ¶-ﬂ', '');
-    # counts all Kana letters in $str. 
+    # counts all Kana letters in $str.
 
   $onlykana = strtr($str, 'Çü-ÇÒÉ@-Éñ¶-ﬂ', '', 'cd');
-    # deletes all characters except Kana letters. 
+    # deletes all characters except Kana letters.
 
   strtr(\$str, " \x81\x40\n\r\t\f", '', 'd');
     # deletes all whitespace characters including IDEOGRAPHIC SPACE.
@@ -370,37 +367,37 @@ B<PATTERN and TOPATTERN>
 By use of C<PATTERN> and C<TOPATTERN>, you can transliterate the string
 using lists containing some multi-character substrings.
 
-If called with four arguments, C<SEARCHLIST>, C<REPLACEMENTLIST>
+If called with four arguments, C<SEARCHLIST>, C<REPLACEMENTLIST>,
 and C<STRING> are splited characterwise;
 
 If called with five arguments, a multi-character substring
-that matchs C<PATTERN> in C<SEARCHLIST>, C<REPLACEMENTLIST> or C<STRING>
+that matchs C<PATTERN> in C<SEARCHLIST>, C<REPLACEMENTLIST>, or C<STRING>
 is regarded as an transliteration unit.
 
 If both C<PATTERN> and C<TOPATTERN> are specified,
-a multi-character substring 
-either that matchs C<PATTERN> in C<SEARCHLIST> or C<STRING>,
+a multi-character substring
+either that matchs C<PATTERN> in C<SEARCHLIST>, or C<STRING>,
 or that matchs C<TOPATTERN> in C<REPLACEMENTLIST>
 is regarded as an transliteration unit.
 
   print strtr(
-    "Caesar Aether Goethe", 
-    "aeoeueAeOeUe", 
-    "&auml;&ouml;&ouml;&Auml;&Ouml;&Uuml;", 
-    "", 
+    "Caesar Aether Goethe",
+    "aeoeueAeOeUe",
+    "&auml;&ouml;&ouml;&Auml;&Ouml;&Uuml;",
+    "",
     "[aouAOU]e",
     "&[aouAOU]uml;");
 
   # output: C&auml;sar &Auml;ther G&ouml;the
 
-B<LIST as Anonymous Array>
+B<LISTs as Anonymous Arrays>
 
-Instead of specification of C<PATTERN> and C<TOPATTERN>, you can use 
+Instead of specification of C<PATTERN> and C<TOPATTERN>, you can use
 anonymous arrays as C<SEARCHLIST> and/or C<REPLACEMENTLIST> as follows.
 
   print strtr(
-    "Caesar Aether Goethe", 
-    [qw/ae oe ue Ae Oe Ue/], 
+    "Caesar Aether Goethe",
+    [qw/ae oe ue Ae Oe Ue/],
     [qw/&auml; &ouml; &ouml; &Auml; &Ouml; &Uuml;/]
   );
 
@@ -457,10 +454,10 @@ as you need not specify the parameter list every time.
   print $digit_tr->("FAX ÅF0124-51-5368\n"); # perl 5.004 or better
 
   # output:
-  # ìdòbÅFÅZàÍìÒélÅ|élå‹Å|òZéµî™ã„
+  # TEL ÅFÅZàÍìÒélÅ|élå‹Å|òZéµî™ã„
   # FAX ÅFÅZàÍìÒélÅ|å‹àÍÅ|å‹éOòZî™
 
-The functionality of the closure made by C<trclosure()> is equivalent 
+The functionality of the closure made by C<trclosure()> is equivalent
 to that of C<strtr()>. Frankly speaking, the C<strtr()> calls
 C<trclosure()> internally and uses the returned closure.
 
@@ -492,18 +489,18 @@ the number of characters replaced is returned.
 
 =head2 Conversion between hiragana and katakana
 
-If a reference of scalar variable is specified as the first argument,
+If a reference to a scalar variable is specified as the first argument,
 the string referred to it is converted and
 the number of characters replaced is returned.
 Otherwise, returns a string converted and
 the specified string is unaffected.
 
-B<Note:> The conversion between a voiced (or semivoiced) 
+B<Note:> The conversion between a voiced (or semivoiced)
 katakana (or hiragana), such as C<'ÉK'>, C<'Ép'>,
-and hankaku katakana with a voiced mark 
+and hankaku katakana with a voiced mark
 or a semi-voiced mark, such as C<'∂ﬁ'>, C<' ﬂ'>,
 is counted as 1.
-Similarly, the conversion between zenkaku hiragana C<'Ç§ÅJ'> and 
+Similarly, the conversion between zenkaku hiragana C<'Ç§ÅJ'> and
 zenkaku katakana C<'Éî'> is counted as 1.
 
 =over 4
@@ -541,7 +538,7 @@ Converts Zenkaku Katakana to Zenkaku Hiragana
 
 =head2 Conversion of Whitespace Characters
 
-If a reference of scalar variable is specified as the first argument,
+If a reference to a scalar variable is specified as the first argument,
 the string referred to it is converted and
 the number of characters replaced is returned.
 Otherwise, returns a string converted and
@@ -569,7 +566,7 @@ must match the following regular expression:
    [\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]
 
 Any string from an external source should be checked by C<issjis()>
-function, excepting you know it is surely encoded in Shift_JIS.
+function, excepting you know it is surely coded in Shift_JIS.
 
 Use of an illegal Shift_JIS string may lead to odd results.
 
@@ -584,7 +581,7 @@ e.g. the quoted literal C<"ï\"> causes a B<fatal error>,
 since its trailing byte C<0x5C> backslashes the closing quote.
 
 Such a problem doesn't arise when the string is gotten from
-any external resource. 
+any external resource.
 But writing the script containing Shift_JIS
 double-byte characters needs the greatest care.
 
@@ -600,12 +597,7 @@ They are preferred as the delimiter of quote-like operators.
 
 =head1 BUGS
 
-This library supposes C<$[> is always equal to 0, never 1. 
-
-The functions provided by this library use B<many> regexp operations.
-Therefore, C<$1> etc. values may be changed or discarded unexpectedly.
-I suggest you save it in a certain variable 
-before call of the function.
+This library supposes C<$[> is always equal to 0, never 1.
 
 =head1 AUTHOR
 
@@ -616,8 +608,8 @@ Tomoyuki SADAHIRO
 
   Copyright(C) 2001-2002, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
-  This program is free software; you can redistribute it and/or 
-  modify it under the same terms as Perl itself.
+  This module is free software; you can redistribute it
+  and/or modify it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 

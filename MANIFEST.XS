@@ -9,6 +9,7 @@ String.pm
 String.pm.NXS
 samples/trans.txt
 t/alnum.t
+t/capture.t
 t/index.t
 t/issjis.t
 t/kana.t

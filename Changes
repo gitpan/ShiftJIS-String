@@ -1,5 +1,10 @@
 Revision history for Perl module ShiftJIS::String.
 
+0.20  Sat May 11 15:29:05 2002
+    - add a new test, t/capture.t.
+    - [XS] unreferenced local variables are removed.
+    - modify doc and codes.
+
 0.19  Sat Jan 12 20:21:16 2002
     - [XS] add some missing sv_2mortal().
 

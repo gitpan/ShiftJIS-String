@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '0.19';
+$VERSION = '0.20';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -33,33 +33,34 @@ my $Char = '(?:[\x81-\x9F\xE0-\xFC][\x00-\xFF]|[\x00-\xFF])';
 ## issjis(LIST)
 ##
 sub issjis {
-  for (@_) {
-    my $str = $_;
-    $str =~ s/[\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]//g;
-    return '' if CORE::length($str);
-  }
-  return 1;
+    for (@_) {
+	my $str = $_;
+	$str =~ s/[\x00-\x7F\xA1-\xDF]|
+	    [\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]//gx;
+	return '' if CORE::length($str);
+    }
+    return 1;
 }
 
 ##
 ## length(STRING)
 ##
-sub length($) {
+sub length ($) {
     my $str = shift;
     return 0 + $str =~ s/$Char//go;
 }
 
 ##
 ## strrev(STRING)
-## 
-sub strrev($) {
+##
+sub strrev ($) {
     my $str = shift;
     join '', reverse $str =~ /$Char/go;
 }
 
 ##
 ## index(STRING, SUBSTR; POSITION)
-## 
+##
 sub index($$;$) {
     my $cnt = 0;
     my($str, $sub) = @_;
@@ -175,7 +176,7 @@ sub substr($$;$$) {
 }
 
 ##
-## strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST; 
+## strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST;
 ##       MODIFIER, PATTERN, TOPATTERN)
 ##
 my %Cache;
@@ -184,7 +185,7 @@ sub getStrtrCache { wantarray ? %Cache : \%Cache }
 
 sub strtr($$$;$$$) {
     my $str = shift;
-    my $coderef = (defined $_[2] && $_[2] =~ /o/) 
+    my $coderef = (defined $_[2] && $_[2] =~ /o/)
 	? ( $Cache{ join "\xFF", @_ } ||= trclosure(@_) )
 	: trclosure(@_);
     &$coderef($str);
@@ -274,7 +275,7 @@ sub trclosure($$;$$$)
 		my $cnt = 0;
 		my $pre = '';
 		(ref $str ? $$str : $str) =~ s{($re)}{
-		    exists $hash{$1} ? (++$cnt, 
+		    exists $hash{$1} ? (++$cnt,
 			$hash{$1} eq '' || $hash{$1} eq $pre
 			    ? '' : ($pre = $hash{$1})
 		    ) : ($pre = '', $1);
@@ -289,9 +290,9 @@ sub trclosure($$;$$$)
 		my $pre = '';
 		my $tmp;
 		(ref $str ? $$str : $str) =~ s{($re)}{
-		    exists $hash{$1} ? ($pre = '', $1) : (++$cnt, 
-			$tmp = @to ? $to[-1] : $1, 
-			$tmp eq $pre ? '' : ($pre = $tmp) 
+		    exists $hash{$1} ? ($pre = '', $1) : (++$cnt,
+			$tmp = @to ? $to[-1] : $1,
+			$tmp eq $pre ? '' : ($pre = $tmp)
 		    );
 		}ge;
 		ref $str ? $cnt : $str;
@@ -529,9 +530,9 @@ sub strsplit ($$;$) {
 ## strxfrm
 ##
 sub strxfrm ($) {
-  my $str = shift;
-  $str =~ s/($Char)/ CORE::length $1 > 1 ? $1 : "\0".$1 /ge;
-  return $str;
+    my $str = shift;
+    $str =~ s/($Char)/ CORE::length $1 > 1 ? $1 : "\0".$1 /ge;
+    return $str;
 }
 
 sub strcmp($$) { $_[0] eq $_[1] ? 0  : strxfrm($_[0]) cmp strxfrm($_[1]) }

@@ -34,17 +34,17 @@ print strtr("A\0BC\0\0", "A\0C\0", "XY\0K") eq "XYB\0YY"
  ? "ok" : "not ok", " 6\n";
 
 print strtr(
-    "Caesar Aether Goethe", 
-    "aeoeueAeOeUe", 
-    "&auml;&ouml;&ouml;&Auml;&Ouml;&Uuml;", 
-    "", 
+    "Caesar Aether Goethe",
+    "aeoeueAeOeUe",
+    "&auml;&ouml;&ouml;&Auml;&Ouml;&Uuml;",
+    "",
     "[aouAOU]e",
     "&[aouAOU]uml;")
   eq "C&auml;sar &Auml;ther G&ouml;the" ? "ok" : "not ok", " 7\n";
 
 print strtr(
-    "Caesar Aether Goethe", 
-    [qw/ae oe ue Ae Oe Ue/], 
+    "Caesar Aether Goethe",
+    [qw/ae oe ue Ae Oe Ue/],
     [qw/&auml; &ouml; &ouml; &Auml; &Ouml; &Uuml;/]
   )  eq "C&auml;sar &Auml;ther G&ouml;the" ? "ok" : "not ok", " 8\n";
 
@@ -149,3 +149,4 @@ print strspn("XZ\0Z\0Y", "\0X\0YZ") == 6
   &&  strspn("‚ ‚¢‚¤‚¦‚¨", "") == 0
   &&  strcspn("‚ ‚¢‚¤‚¦‚¨", "") == 5
  ? "ok" : "not ok", " 18\n";
+

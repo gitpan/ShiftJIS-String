@@ -20,25 +20,29 @@ print "ok 1\n";
   $c = strtr(\$a,'a-cd','15-7','R');
   $d = $b =~ tr'a-cd'15-7';
   print $a eq $b && $c == $d ? "ok" : "not ok", " ", ++$loaded, "\n";
+}
 
+{
   my @mod = ("", "d", "c", "cd", "s", "sd", "sc", "scd");
   my @uc = ("", "I", "IA", "AIS", "ASIB","AAA");
   my @lc = ("", "i", "ia", "ais", "asib","aba");
-  my $str = "THIS IS A PEN. YOU ARE A RABBIT.";
-  my($i, $j, $m, $core, $sjis, $nstr, $ccnt, $scnt, $ncnt);
+  my $pen = "THIS IS A PEN. YOU ARE A RABBIT.";
+  my($i, $j, $m, $ccnt, $scnt, $ncnt);
 
   for $m (@mod){
     $NG = 0;
     for $i (0..$#uc) {
       for $j (0..$#lc) {
-        $nstr = $sjis = $core = $str;
-        $ccnt = eval "\$core =~ tr/$uc[$i]/$lc[$j]/$m;";
-        $scnt = strtr(\$sjis, $uc[$i], $lc[$j], $m);
-        $ncnt = strtr(\$nstr, $uc[$i], $lc[$j], "n$m");
-        ++$NG unless $core eq $sjis && $ccnt == $scnt
-                  && $core eq $nstr && $ccnt == $ncnt;
+        $::nstr = $::sjis = $::core = $pen;
+        $ccnt = eval "\$::core =~ tr/$uc[$i]/$lc[$j]/$m;";
+        $scnt = strtr(\$::sjis, $uc[$i], $lc[$j], $m);
+        $ncnt = strtr(\$::nstr, $uc[$i], $lc[$j], "n$m");
+        ++$NG unless $::core eq $::sjis && $ccnt == $scnt
+                  && $::core eq $::nstr && $ccnt == $ncnt;
       }
     }
     print ! $NG ? "ok" : "not ok", " ", ++$loaded, "\n";
   }
 }
+
+1;

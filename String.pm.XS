@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '0.19';
+$VERSION = '0.20';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -48,7 +48,7 @@ sub substr ($$;$$) {
 }
 
 ##
-## strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST; 
+## strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST;
 ##       MODIFIER, PATTERN, TOPATTERN)
 ##
 my %Cache;
@@ -58,7 +58,7 @@ sub getStrtrCache { wantarray ? %Cache : \%Cache }
 sub strtr($$$;$$$)
 {
     my $str = shift;
-    my $coderef = (defined $_[2] && $_[2] =~ /o/) 
+    my $coderef = (defined $_[2] && $_[2] =~ /o/)
 	? ( $Cache{ join "\xFF", @_ } ||= trclosure(@_) )
 	: trclosure(@_);
     &$coderef($str);
@@ -157,7 +157,7 @@ sub trclosure($$;$$$) {
 		my $cnt = 0;
 		my $pre = '';
 		(ref $str ? $$str : $str) =~ s{($re)}{
-		    exists $hash{$1} ? (++$cnt, 
+		    exists $hash{$1} ? (++$cnt,
 			$hash{$1} eq '' || $hash{$1} eq $pre
 			    ? '' : ($pre = $hash{$1})
 		    ) : ($pre = '', $1);
@@ -172,9 +172,9 @@ sub trclosure($$;$$$) {
 		my $pre = '';
 		my $tmp;
 		(ref $str ? $$str : $str) =~ s{($re)}{
-		    exists $hash{$1} ? ($pre = '', $1) : (++$cnt, 
-			$tmp = @to ? $to[-1] : $1, 
-			$tmp eq $pre ? '' : ($pre = $tmp) 
+		    exists $hash{$1} ? ($pre = '', $1) : (++$cnt,
+			$tmp = @to ? $to[-1] : $1,
+			$tmp eq $pre ? '' : ($pre = $tmp)
 		    );
 		}ge;
 		ref $str ? $cnt : $str;

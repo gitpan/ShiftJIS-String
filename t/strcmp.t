@@ -44,7 +44,6 @@ my @ret = (0) x 7;
 my $NG1 = 0;
 my $NG2 = 0;
 foreach $here (@char) {
-    $here = 
     ++$NG1 unless strcmp($prev, $here) < 0;
     ++$NG2 unless strLE($prev, $here);
     $prev = $here;

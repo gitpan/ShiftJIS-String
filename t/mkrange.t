@@ -31,7 +31,7 @@ print $@
 eval { mkrange('-‚ -‚©Š¿‚y-‚`') };
 print $@
   ? "ok" : "not ok", " 6\n";
-  
+
 print mkrange("0-9")   eq "0123456789"
   &&  mkrange("0-9",1) eq "0123456789"
   ? "ok" : "not ok", " 7\n";

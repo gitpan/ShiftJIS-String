@@ -14,7 +14,7 @@ print "ok 1\n";
 
 print "ok 2\n";
 
-# modified from a part of Perl 5.6.0 <t/op/subst.t> 
+# modified from a part of Perl 5.6.0 <t/op/subst.t>
 {
   $_ = "aaaaa";
   print strtr(\$_, 'a', 'b') == 5
