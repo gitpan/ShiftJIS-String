@@ -1,6 +1,7 @@
 Changes
 Makefile.PL
 MANIFEST
+README
 String.pm
 t/alnum.t
 t/index.t

@@ -1,4 +1,7 @@
-Revision history for Perl extension ShiftJIS::String.
+Revision history for Perl module ShiftJIS::String.
+
+0.06  Wed Jun  6 22:11:38 2001
+    - add README. (thank you, Andreas Marcel Riechert)
 
 0.05  Mon Jun  4 23:15:12 2001
     - make ./t/*.t files.

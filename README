@@ -1,0 +1,41 @@
+A version 0.06
+==============
+
+NAME
+
+ShiftJIS::String - Perl module to deal with Japanese strings 
+in Shift_JIS encoding.
+
+SYNOPSIS
+
+  use ShiftJIS::String qw(substr index length);
+  $str = 'プログラミング Perl';
+  $len = length(substr($str, index($str, 'ラミ')));
+   # $len == 9, length in characters of 'ラミング Perl'.
+   # CORE::length should be used to get length in bytes.
+
+DESCRIPTION
+
+This module provides some functions which emulate
+the corresponding CORE functions and helps someone
+to manipulate multiple-byte character sequences in Shift_JIS encoding.
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+PREREQUISITES
+
+Perl 5.005 or better is recommended.
+
+COPYRIGHT AND LICENCE
+
+Copyright(c) 2001, SADAHIRO Tomoyuki. Japan. All rights reserved.
+
+This program is free software; you can redistribute it and/or 
+modify it under the same terms as Perl itself.

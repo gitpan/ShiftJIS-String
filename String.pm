@@ -3,9 +3,11 @@ package ShiftJIS::String;
 use strict;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 
+use Carp;
+
 require Exporter;
 
-@ISA = qw(Exporter AutoLoader);
+@ISA = qw(Exporter);
 
 @EXPORT = qw();
 
@@ -15,7 +17,7 @@ require Exporter;
   kataH2Z kanaH2Z kataZ2H kanaZ2H hi2ka ka2hi hiXka spaceH2Z spaceZ2H
 );
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 my $Char = '(?:[\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC])';
 
@@ -160,7 +162,7 @@ sub substr{
     $except = 1 if 0 <= $len && $off + $len + $slen < 0;
   }
   if($except){
-    if(@_ > 3){die "substr outside of string"} else {return}
+    if(@_ > 3){croak "substr outside of string"} else {return}
   }
   $ini = $off < 0 ? $slen + $off : $off;
   $fin = $len < 0 ? $slen + $len : $ini + $len;
@@ -309,7 +311,7 @@ sub trclosure {
           exists $hash{$1} ? (++$cnt, $hash{$1}) : $1;
         }ge;
         ref $str ? $cnt : $str;
-      } : sub { die "Error! Invalid Closure!\n" }
+      } : sub { croak "Error! Invalid Closure!\n" }
 }
 
 ###########################################################################
@@ -620,7 +622,7 @@ then successive assignment may cause unexpected results.
 
 =head2 Character Range
 
-=over4
+=over 4
 
 =item C<mkrange(EXPR, EXPR)>
 
