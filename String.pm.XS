@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '0.20';
+$VERSION = '1.00';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -68,15 +68,16 @@ sub strtr($$$;$$$)
 ## trclosure(SEARCHLIST, REPLACEMENTLIST; MODIFIER, PATTERN, TOPATTERN)
 ##
 sub trclosure($$;$$$) {
-    my(@fr, @to, $noxs, $r, $R, $c, $d, $s, $i, %hash);
+    my(@fr, @to, $noxs, $r, $R, $c, $d, $s, $h, $i, %hash);
     my($fr, $to, $mod, $re, $tore) = @_;
     $mod ||= ''; # '0' is not supposed.
 
     $noxs = $[ <= CORE::index($mod, 'n');
+    $h = $[ <= CORE::index($mod, 'h');
     $r = $[ <= CORE::index($mod, 'r');
     $R = $[ <= CORE::index($mod, 'R');
 
-    if (! $noxs && !ref $fr && !ref $to && !defined $re && !defined $tore) {
+    if (@_ <= 3 && !$h && !$noxs && !ref $fr && !ref $to) {
 	if (!$R) {
 	    $fr = mkrange($fr, $r);
 	    $to = mkrange($to, $r);
@@ -124,60 +125,75 @@ sub trclosure($$;$$$) {
 	$modes == 0 || $modes == 2 ?
 	    sub { # $c: false, $d: true/false, $s: false, $mod:  0 or 2
 		my $str = shift;
-		my $cnt = 0;
+		my $cnt = 0; my %cnt = ();
 		(ref $str ? $$str : $str) =~ s{($re)}{
-		    exists $hash{$1} ? (++$cnt, $hash{$1}) : $1;
+		    exists $hash{$1}
+			? ($h ? ++$cnt{$1} : ++$cnt, $hash{$1})
+			: $1;
 		}ge;
-		ref $str ? $cnt : $str;
+		return $h
+		    ? wantarray ? %cnt : \%cnt
+		    : ref $str  ? $cnt : $str;
 	    } :
 
 	$modes == 1 ?
 	    sub { # $c: true, $d: false, $s: false, $mod: 1
 		my $str = shift;
-		my $cnt = 0;
+		my $cnt = 0; my %cnt = ();
 		(ref $str ? $$str : $str) =~ s{($re)}{
-		    exists $hash{$1} ? $1 : (++$cnt, @to) ? $to[-1] : $1;
+		    exists $hash{$1} ? $1
+			: ($h ? ++$cnt{$1} : ++$cnt, @to) ? $to[-1] : $1;
 		}ge;
-		ref $str ? $cnt : $str;
+		return $h
+		    ? wantarray ? %cnt : \%cnt
+		    : ref $str  ? $cnt : $str;
 	    } :
 
 	$modes == 3 || $modes == 7 ?
 	    sub { # $c: true, $d: true, $s: true/false, $mod: 3 or 7
 		my $str = shift;
-		my $cnt = 0;
+		my $cnt = 0; my %cnt = ();
 		(ref $str ? $$str : $str) =~ s{($re)}{
-		    exists $hash{$1} ? $1 : (++$cnt, '');
+		    exists $hash{$1} ? $1 : ($h ? ++$cnt{$1} : ++$cnt, '');
 		}ge;
-		ref $str ? $cnt : $str;
+		return $h
+		    ? wantarray ? %cnt : \%cnt
+		    : ref $str  ? $cnt : $str;
 	    } :
 
 	$modes == 4 || $modes == 6 ?
 	    sub { # $c: false, $d: true/false, $s: true, $mod: 4 or 6
 		my $str = shift;
-		my $cnt = 0;
+		my $cnt = 0; my %cnt = ();
 		my $pre = '';
 		(ref $str ? $$str : $str) =~ s{($re)}{
-		    exists $hash{$1} ? (++$cnt,
+		    exists $hash{$1} ? ($h ? ++$cnt{$1} : ++$cnt,
 			$hash{$1} eq '' || $hash{$1} eq $pre
 			    ? '' : ($pre = $hash{$1})
 		    ) : ($pre = '', $1);
 		}ge;
-		ref $str ? $cnt : $str;
+		return $h
+		    ? wantarray ? %cnt : \%cnt
+		    : ref $str  ? $cnt : $str;
 	    } :
 
 	$modes == 5 ?
 	    sub { # $c: true, $d: false, $s: true, $mod: 5
 		my $str = shift;
-		my $cnt = 0;
+		my $cnt = 0; my %cnt = ();
 		my $pre = '';
 		my $tmp;
 		(ref $str ? $$str : $str) =~ s{($re)}{
-		    exists $hash{$1} ? ($pre = '', $1) : (++$cnt,
-			$tmp = @to ? $to[-1] : $1,
-			$tmp eq $pre ? '' : ($pre = $tmp)
+		    exists $hash{$1}
+			? ($pre = '', $1)
+			: ($h ? ++$cnt{$1} : ++$cnt,
+			    $tmp = @to ? $to[-1] : $1,
+				$tmp eq $pre ? '' : ($pre = $tmp)
 		    );
 		}ge;
-		ref $str ? $cnt : $str;
+		return $h
+		    ? wantarray ? %cnt : \%cnt
+		    : ref $str  ? $cnt : $str;
 	    } :
 	    sub { croak "$PACKAGE Panic! Invalid closure in trclosure!\n" }
 }

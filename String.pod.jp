@@ -1,0 +1,637 @@
+
+=head1 名称
+
+ShiftJIS::String - Shift_JIS 志向の文字列操作関数
+
+=head1 概要
+
+  use ShiftJIS::String;
+
+  ShiftJIS::String::substr($str, ShiftJIS::String::index($str, $substr));
+
+=head1 本 POD について
+
+この POD は Shift_JIS で書かれています。
+
+'C<あ>' が C<HIRAGANA LETTER A> に見えますか ?
+また、'C<\>' が C<REVERSE SOLIDUS> ではなく C<YEN SIGN> に見えますか ?
+さもなければフォントを正しいものに交換した方がよいでしょう。
+(あるいは POD が変な変換をされたのかも知れません。)
+
+=head1 詳細
+
+このモジュールは、Shift_JIS の文字列を扱うのに有用であろう
+組み込み関数に類似した関数を提供します。
+
+=head1 関数
+
+=head2 文字列が正しいかどうかの確認
+
+=over 4
+
+=item C<issjis(LIST)>
+
+引数リストのすべての文字列が Shift_JIS として正しいか否かの真偽値を返します。
+（どれか一つでも不正であると偽を返します。）
+
+=back
+
+=head2 文字列の長さ
+
+=over 4
+
+=item C<length(STRING)>
+
+文字単位の長さを返します。
+
+=back
+
+=head2 逆順
+
+=over 4
+
+=item C<strrev(STRING)>
+
+文字が逆順になった文字列を返します。
+
+=back
+
+=head2 検索
+
+=over 4
+
+=item C<index(STRING, SUBSTR)>
+
+=item C<index(STRING, SUBSTR, POSITION)>
+
+C<POSITION> の位置またはそれ以降で、C<STRING>、
+C<SUBSTR> の最初の出現位置を返します。
+
+C<POSITION> を省略した場合は、文字列の先頭から探します。
+
+部分文字列が見つからない時は -1 を返します。
+
+=item C<rindex(STRING, SUBSTR)>
+
+=item C<rindex(STRING, SUBSTR, POSITION)>
+
+C<STRING> 中、C<SUBSTR> の最後の出現位置を返します。
+C<POSITION> を決めた時はその位置またはそれ以前で最後の出現位置を返します。
+
+部分文字列が見つからない時は -1 を返します。
+
+=item C<strspn(STRING, SEARCHLIST)>
+
+C<SEARCHLIST> に含まれない任意の文字の最初の出現位置を返します。
+
+  strspn("+0.12345*12", "+-.0123456789");
+  # 8 を返す。
+
+C<STRING> が C<SEARCHLIST> 中のどの文字も含まない場合は、0 を返します。
+
+C<STRING> が C<SEARCHLIST> 中の文字からなる場合は、
+返り値は文字列の長さに等しくなります。
+
+=item C<strcspn(STRING, SEARCHLIST)>
+
+C<SEARCHLIST> に含まれる任意の文字の最初の出現位置を返します。
+
+  strcspn("Perlは面白い。", "赤青黄白黒");
+  # 6 を返す。
+
+C<STRING> が C<SEARCHLIST> 中のどの文字も含まない場合は、
+返り値は文字列の長さに等しくなります。
+
+=back
+
+=head2 部分文字列
+
+=over 4
+
+=item C<substr(STRING or SCALAR REF, OFFSET)>
+
+=item C<substr(STRING or SCALAR REF, OFFSET, LENGTH)>
+
+=item C<substr(SCALAR, OFFSET, LENGTH, REPLACEMENT)>
+
+組み込みの C<substr> と同様ですが Shift_JIS 文字列に対して働きます。
+
+第４引数として C<REPLACEMENT> を渡した場合は、
+C<SCALAR> のその部分を置換して、その部分の元の部分文字列を返します。
+
+以下のように、第１引数にスカラー変数へのリファレンスを使うと、
+左辺値リファレンスを利用することができます。
+
+    ${ &substr(\$str,$off,$len) } = $replace;
+
+        は、CORE の
+
+    CORE::substr($str,$off,$len) = $replace;
+
+        のように働きます。
+
+返り値の左辺値は Shift_JIS 風に働かないので、
+２度目の代入では期待通りの結果にならない可能性があります。
+
+    $str = "0123456789";
+    $lval  = &substr(\$str,3,1);
+    $$lval = "あい";
+    $$lval = "a";
+    # $str は "012aい456789" ではなくて、
+    # 不正な文字列 "012a\xA0い456789" になります。
+
+=back
+
+=head2 分割
+
+=over 4
+
+=item C<strsplit(SEPARATOR, STRING)>
+
+=item C<strsplit(SEPARATOR, STRING, LIMIT)>
+
+この関数は組み込みの C<split> のように働きますが、正規表現ではなくて、
+C<SEPARATOR> 文字列による分割を行います。
+リストコンテキスト以外では、見つかったフィールドの数を返すのみです。
+分割結果を C<@_> 配列に格納しません。
+
+  strsplit('||', '||あいうえお||パピプペポ||01234||');
+  # ('', 'あいうえお', 'パピプペポ', '01234')
+
+  strsplit('／', 'Perl／駱駝／Camel');
+  # ('Perl', '駱駝', 'Camel')
+
+C<SEPARATOR> として空文字列を用いた場合は、文字に分割します。
+(C<CORE::split //, STRING, LIMIT> と同様。)
+
+  strsplit('', 'This is Perl.', 7);
+  # ('T', 'h', 'i', 's', ' ', 'i',  's Perl.')
+
+C<SEPARATOR> として未定義値を用いた場合は、
+空白類文字（和字間隔を含む）で分割します。
+先頭から続く空白類文字は、フィールドを作りません。
+(C<CORE::split ' ', STRING, LIMIT> と同様。)
+
+  strsplit(undef, ' 　 This  is 　 Perl.');
+  # ('This', 'is', 'Perl.')
+
+=back
+
+=head2 比較
+
+=over 4
+
+=item C<strcmp(LEFT-STRING, RIGHT-STRING)>
+
+返り値は、1 (C<LEFT-STRING> が C<RIGHT-STRING> より大きい時)
+か 0 (C<LEFT-STRING> が C<RIGHT-STRING> に等しい時)
+か -1 (C<LEFT-STRING> が C<RIGHT-STRING> より小さい時) になります。
+
+文字順は大まかに言って、次のリストに示すようになります。
+
+    JIS X 0201 ラテン文字，JIS X 0201 片仮名，JIS X 0208 漢字 (全角)。
+
+例えば、
+C<0x41> (C<'A'>) は C<0xB1> (C<'ｱ'>) より小さい。
+C<0xB1> (C<'ｱ'>) は C<0x8341> (C<'ア'>) より小さい。
+C<0x8341> (C<'ア'>) は C<0x8383> (C<'ャ'>) より小さい。
+C<0x8383> (C<'ャ'>) は C<0x83B1> (C<'Τ' ギリシア大文字タウ>) より小さい。
+
+B<注意!>
+第二例と第四例の比較からわかるように、
+バイト C<"\xB1"> は第一バイトとしては C<"\x83"> より小さいが、
+第二バイトとしては大きくなります。
+簡単に言えばバイナリ比較は Shift_JIS 文字順ではうまくいきません。
+
+=item C<strEQ(LEFT-STRING, RIGHT-STRING)>
+
+C<LEFT-STRING> が C<RIGHT-STRING> に等しいかどうかの真偽値を返します。
+
+B<注:> C<strEQ> は組み込みの C<eq> 演算子と等価です。
+
+=item C<strNE(LEFT-STRING, RIGHT-STRING)>
+
+C<LEFT-STRING> が C<RIGHT-STRING> に等しくないかどうかの真偽値を返します。
+
+B<注:> C<strNE> は組み込みの C<ne> 演算子と等価です。
+
+=item C<strLT(LEFT-STRING, RIGHT-STRING)>
+
+C<LEFT-STRING> が C<RIGHT-STRING> より小さいかどうかの真偽値を返します。
+
+=item C<strLE(LEFT-STRING, RIGHT-STRING)>
+
+C<LEFT-STRING> が C<RIGHT-STRING> より小さいまたは等しいか
+どうかの真偽値を返します。
+
+=item C<strGT(LEFT-STRING, RIGHT-STRING)>
+
+C<LEFT-STRING> が C<RIGHT-STRING> より大きいかどうかの真偽値を返します。
+
+=item C<strGE(LEFT-STRING, RIGHT-STRING)>
+
+C<LEFT-STRING> が C<RIGHT-STRING> より大きいまたは等しいか
+どうかの真偽値を返します。
+
+=item C<strxfrm(STRING)>
+
+組み込みの C<cmp> 演算子でバイナリ比較を行えるような
+文字列に変換したものを返します。
+（C 言語の同名関数と異なり、変換後の文字列の長さを返すのではありません。)
+
+すなわち、あなたの Perl の C<cmp> 演算子が
+Perl 以外のロカールを使用しない限り、
+C<strxfrm($a) cmp strxfrm($b)> は C<strcmp($a, $b)>
+と等価になります。
+
+=back
+
+=head2 文字範囲
+
+=over 4
+
+=item C<mkrange(EXPR, EXPR)>
+
+与えられた文字範囲を解釈して得られる文字リスト
+（リストコンテキスト以外では文字列に連結したもの）を返します。
+
+文字範囲は C<HYPHEN-MINUS>, C<'-'> で表わします。
+エスケープした C<'\-'> および C<'\\'> はそれぞれ、
+リテラルの C<'-'> および  C<'\'> の代わりに用いられます。
+最初または最後のハイフンはやはりハイフンそのものとして解釈されます。
+
+例えば、C<mkrange('+\-0-9a-fA-F')> は、
+C<('+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F')> を、
+そして C<scalar mkrange('か-ご')> は C<'かがきぎくぐけげこご'>
+を返します。.
+
+Shift_JIS 文字の順序は以下のとおりです。
+  C<0x00 .. 0x7F, 0xA1 .. 0xDF, 0x8140 .. 0x9FFC, 0xE040 .. 0xFCFC>.
+だから、C<mkrange('亜-腕')> は、第一水準の漢字すべてのリストを返します。
+
+第二引数に真の値を渡した場合、C<'9-0'> や C<'Z-A'> のような
+逆順の文字範囲を使えるようになります（返り値も逆順になります）。
+そうでない場合、逆順の範囲があると croak されます（致命的エラー）。
+
+=back
+
+=head2 文字の変換
+
+=over 4
+
+=item C<strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST)>
+
+=item C<strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST, MODIFIER)>
+
+=item C<strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST, MODIFIER, PATTERN)>
+
+=item C<strtr(STRING or SCALAR REF, SEARCHLIST, REPLACEMENTLIST, MODIFIER, PATTERN, TOPATTERN)>
+
+C<SEARCHLIST> 中の文字のすべてを C<REPLACEMENTLIST> 中に示された
+対応する文字に変換します。
+
+第一引数としてスカラー変数へのリファレンスを用いると、
+スカラー変数内の文字列を変更して、
+変換または削除された文字の数を返します。
+それ以外の場合、元の文字列を変更することなく、変換後の文字列を返します。
+
+  $str = "なんといおうか";
+  print strtr(\$str,"あいうえお", "アイウエオ"), "  ", $str;
+  # 出力: 3  なんとイオウか
+
+  $str = "後門の狼。";
+  print strtr($str,"後狼。", "前虎、"), $str;
+  # 出力: 前門の虎、後門の狼。
+
+B<SEARCHLIST および REPLACEMENTLIST>
+
+C<"ぁ-お"> のような文字範囲（内部的に C<mkrange()> を使用）を
+用いることができます)。
+
+C<REPLACEMENTLIST> が空文字列の場合、C<SEARCHLIST> で代用します。
+
+C<REPLACEMENTLIST> が C<SEARCHLIST> より短い場合、
+C<REPLACEMENTLIST> の最後文字が十分な長さまで用いられます。
+（しかし 'd' 修飾子を用いた場合を除きます。)
+
+  strtr(\$str, 'ぁ-んァ-ヶｦ-ﾟ', '#');
+    # すべての仮名文字を '#' に変換します。
+
+B<MODIFIER>
+
+    c   SEARCHLIST の補集合を用います。
+    d   C<SEARCHLIST> に含まれるが C<REPLACEMENTLIST> にない文字を削除します。
+    s   同じ変換文字が連続した場合にひとつにまとめます。
+    h   文字の出現頻度のハッシュ（またはそのリファレンス）を返します。
+    R   文字範囲を使用しません。
+    r   逆順の文字範囲を使えるようにします。
+    o   変換表を内部的にキャッシュします。
+
+  strtr(\$str, 'ぁ-んァ-ヶｦ-ﾟ', '');
+    # $str 中の仮名文字の数を数えます。
+
+  $onlykana = strtr($str, 'ぁ-んァ-ヶｦ-ﾟ', '', 'cd');
+    # 仮名以外の文字を削除します。
+
+  strtr(\$str, " \x81\x40\n\r\t\f", '', 'd');
+    # 和字間隔を含む空白類文字を削除します。
+
+  strtr("おかかうめぼし　ちちとはは", 'ぁ-ん', '', 's');
+    # 出力: おかうめぼし　ちとは
+
+  strtr("条件演算子の使いすぎは見苦しい", 'ぁ-ん', '＃', 'cs');
+    # 出力: ＃の＃いすぎは＃しい
+
+C<'h'> 修飾子を用いると、第一引数が文字列かリファレンスかに拘らず、文字の出現頻度を、文字がキー、回数が値となるハッシュで返します。
+スカラーコンテキストではハッシュリファレンスで返します。
+同時に変更後の文字列を得たければ、第一引数としてリファレンスを渡し、
+そのリファレンスの内容を変更させるようにしてください。
+
+  %hist_kana = strtr('日本語のカタカナ', 'ぁ-んァ-ヶｦ-ﾟ', '', 'h');
+    # 仮名の出現頻度を調べます。
+    # 返却値は ('の' => 1, 'カ' => 2, 'タ' => 1, 'ナ' => 1),
+    # ただし、ハッシュのキーの順序は、こうなるとは限りません。
+
+C<'R'> 修飾子を用いると、C<'-'> はメタ文字ではなく、
+C<tr'''> 中のように、ハイフンそのものとみなします。
+
+  strtr("90 - 32 = 58", "0-9", "A-J");
+    # 出力: "JA - DC = FI"
+
+  strtr("90 - 32 = 58", "0-9", "A-J", "R");
+    # 出力: "JA - 32 = 58"
+    # cf. ($str = "90 - 32 = 58") =~ tr'0-9'A-J';
+    # '0' から 'A' に、'-' から '-' に、'9' から 'J' に。
+
+C<'r'> 修飾子を用いると、逆順の文字範囲が使えるようになります。
+例えば、C<strtr($str, "0-9", "9-0", "r")> は
+C<strtr($str, "0123456789", "9876543210")> と等価です。
+
+  strtr($text, '亜-腕', '腕-亜', "r");
+    # テキストが壊れたように見えるかも知れません。
+
+B<PATTERN および TOPATTERN>
+
+C<PATTERN> および C<TOPATTERN> を用いると、複数文字からなる部分文字列を
+単位とした変換を行うことができます。
+
+四個の引数で関数を呼ぶと、C<SEARCHLIST>，C<REPLACEMENTLIST>，
+および C<STRING> は文字単位に分解されます。
+
+五個の引数を渡すと C<SEARCHLIST>，C<REPLACEMENTLIST>，
+および C<STRING> 中の C<PATTERN> にマッチする部分は変換の単位と見なされます。
+
+C<PATTERN> と C<TOPATTERN> との両方を渡すと、
+C<SEARCHLIST> か C<STRING> 中の C<PATTERN> にマッチする部分と、
+C<REPLACEMENTLIST> 中の C<TOPATTERN> にマッチする部分
+は変換の単位と見なされます。
+
+  print strtr(
+    "Caesar Aether Goethe",
+    "aeoeueAeOeUe",
+    "&auml;&ouml;&ouml;&Auml;&Ouml;&Uuml;",
+    "",
+    "[aouAOU]e",
+    "&[aouAOU]uml;");
+
+  # 出力: C&auml;sar &Auml;ther G&ouml;the
+
+B<無名配列による LISTS>
+
+C<PATTERN> や C<TOPATTERN> を渡す代わりに、以下に示すように、
+C<SEARCHLIST> および／または C<REPLACEMENTLIST> として
+無名配列を用いることができます。
+
+  print strtr(
+    "Caesar Aether Goethe",
+    [qw/ae oe ue Ae Oe Ue/],
+    [qw/&auml; &ouml; &ouml; &Auml; &Ouml; &Uuml;/]
+  );
+
+B<変換表のキャッシュ>
+
+C<'o'> 修飾子を用いると、変換表が内部的にキャッシュされます。
+
+例えば、
+
+  foreach (@hiragana_strings) {
+      print strtr($_, 'ぁ-ん', 'ァ-ン', 'o');
+  }
+  # 片仮名で出力される。
+
+は、次のようにするのと、同じ位の効率があります。
+
+  $hiragana_to_katakana = trclosure('ぁ-ん', 'ァ-ン');
+
+  foreach (@hiragana_strings) {
+      print &$hiragana_to_katakana($_);
+  }
+
+どちらでも好きな方を用いればいいでしょう。
+
+C<'o'> 修飾子なしでは、
+
+  foreach (@hiragana_strings) {
+      print strtr($_, 'ぁ-ん', 'ァ-ン');
+  }
+
+はとても遅くなるでしょう。なぜなら、変換表を
+呼び出しの度に作成するからです。
+
+=back
+
+=head2 変換のクロージャの生成
+
+=over 4
+
+=item C<trclosure(SEARCHLIST, REPLACEMENTLIST)>
+
+=item C<trclosure(SEARCHLIST, REPLACEMENTLIST, MODIFIER)>
+
+=item C<trclosure(SEARCHLIST, REPLACEMENTLIST, MODIFIER, PATTERN)>
+
+=item C<trclosure(SEARCHLIST, REPLACEMENTLIST, MODIFIER, PATTERN, TOPATTERN)>
+
+文字列を変換するためのクロージャを返します。
+返り値は単なるコードリファレンス（無名サブルーチン）であって、
+ブレスされたオブジェクトではありません。
+
+このコードリファレンスを使えば、変換対応を示すパラメータリストを
+呼び出しのたびに渡す必要がありません。
+
+  my $digit_tr = trclosure("1234567890-", "一二三四五六七八九〇－");
+  print &$digit_tr ("TEL ：0124-45-6789\n"); # ok to perl 5.003
+  print $digit_tr->("FAX ：0124-51-5368\n"); # perl 5.004 or better
+
+  # 出力:
+  # TEL ：〇一二四－四五－六七八九
+  # FAX ：〇一二四－五一－五三六八
+
+C<trclosure()> により作られたクロージャの機能は
+C<strtr()> のそれと同様です。
+実のところ、C<strtr()> は内部的に C<trclosure()> を呼んで、
+返却値のクロージャを使っています。
+
+=back
+
+=head2 アルファベットの大文字・小文字
+
+=over 4
+
+=item C<toupper(STRING or SCALAR REF)>
+
+C<STRING> を大文字化した文字列を返します。
+半角ラテン文字 C<a-z> から C<A-Z> の変換のみを行います。
+
+第一引数としてスカラー変数へのリファレンスを渡すと、
+リファレンスされた文字列が変換されて、
+変換された文字の数が返されます。
+
+=item C<tolower(STRING or SCALAR REF)>
+
+C<STRING> を小文字化した文字列を返します。
+半角ラテン文字 C<A-Z> から C<a-z> の変換のみを行います。
+
+第一引数としてスカラー変数へのリファレンスを渡すと、
+リファレンスされた文字列が変換されて、
+変換された文字の数が返されます。
+
+=back
+
+=head2 平仮名・片仮名の変換
+
+第一引数としてスカラー変数へのリファレンスを渡すと、
+リファレンスされた文字列が変換されて、
+変換された文字の数が返されます。
+そうでない場合、変換後の文字列が返され、
+元の文字列に影響はありません。
+
+B<注意:> C<'ガ'>, C<'パ'> のような濁音（または半濁音）の片仮名
+（または平仮名）と、C<'ｶﾞ'>, C<'ﾊﾟ'> のような濁点付き
+（または半濁点付き）の半角片仮名との間の変換は 1 と数えます。
+同様に、全角平仮名 C<'う゛'> と全角片仮名 C<'ヴ'> の間の
+変換も 1 と数えます。
+
+=over 4
+
+=item C<kanaH2Z(STRING or SCALAR REF)>
+
+=item C<kataH2Z(STRING or SCALAR REF)>
+
+半角カタカナを全角カタカナに変換します。
+
+B<注：> C<kataH2Z> は C<kanaH2Z> の別名であり、機能に変わりはありません。
+
+=item C<kataZ2H(STRING or SCALAR REF)>
+
+全角カタカナを半角カタカナに変換します。
+
+=item C<kanaZ2H(STRING or SCALAR REF)>
+
+全角ひらがなとカタカナを半角カタカナに変換します。
+
+=item C<hiXka(STRING or SCALAR REF)>
+
+全角ひらがなを全角カタカナに、全角カタカナを全角ひらがなに
+一度に変換します。
+
+=item C<hi2ka(STRING or SCALAR REF)>
+
+全角ひらがなを全角カタカナに変換します。
+
+=item C<ka2hi(STRING or SCALAR REF)>
+
+全角カタカナを全角ひらがなに変換します。
+
+=back
+
+=head2 空白類文字の変換
+
+第一引数としてスカラー変数へのリファレンスを渡すと、
+リファレンスされた文字列が変換されて、
+変換された文字の数が返されます。
+そうでない場合、変換後の文字列が返され、
+元の文字列に影響はありません。
+
+=over 4
+
+=item C<spaceH2Z(STRING or SCALAR REF)>
+
+文字列中のスペースを和字間隔に変換して返します。
+
+=item C<spaceZ2H(STRING or SCALAR REF)>
+
+文字列中の和字間隔をスペースに変換して返します。
+
+=back
+
+=head1 注意事項
+
+このモジュールでは正しい Shift_JIS 文字列の文字は
+以下の正規表現にマッチしなければなりません。
+
+   [\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]
+
+外部リソースの文字列は、それが正しい Shift_JIS 文字列であると
+分かっている場合を除いて C<issjis()> を用いて確認すべきです。
+
+正しくない Shift_JIS 文字列を使うと変な結果になることがあります。
+（正しくない Shift_JIS 文字列を使った場合、どんな結果になるか、
+何も決まっていませんので、何も期待してはいけません。）
+
+Shift_JIS の二バイト文字の中には、第二バイトが C<[\x40-\x7E]>、すなわち
+
+   @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+
+であるものがあります。
+
+Perl の構文解析では、このようなバイトについて
+特別な処理はされていませんので、問題が発生することがあります。
+例えば、リテラル C<"表"> は致命的エラーを引き起こします。
+なぜなら、第二バイトの C<0x5C> が閉じクォートをエスケープするからです。
+
+外部のファイル等から読み出した場合は、この問題は起こりませんが、
+スクリプトを Shift_JIS で書く時には十分な注意が必要です。
+
+Shift_JISのリテラル文字列を作るためには、
+シングルクォート風のヒアドク（C<E<lt>E<lt> ''>）や、
+メタ文字 C<\xhh> を使うほうがよいでしょう。
+
+Shift_JIS の第二バイトに出て来ないASCII図形文字（C<[\x21-\x3F]>）は
+以下の通り。
+
+   !"#$%&'()*+,-./0123456789:;<=>?
+
+クォート風演算子のデリミタとしては、これを使うとよいかもしれません。
+
+=head1 バグ
+
+このモジュールでは C<$[> はいつも 0 であって、1 にならないと考えています。
+
+=head1 著者
+
+Tomoyuki SADAHIRO （貞廣 知行）
+
+  E<lt>SADAHIRO@cpan.orgE<gt>
+
+  http://homepage1.nifty.com/nomenclator/perl/
+
+  Copyright(C) 2001-2002, SADAHIRO Tomoyuki. Japan. All rights reserved.
+
+  This module is free software; you can redistribute it
+  and/or modify it under the same terms as Perl itself.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item L<ShiftJIS::Regexp>
+
+=item L<ShiftJIS::Collate>
+
+=item L<String::Multibyte>
+
+=back
+
+=cut

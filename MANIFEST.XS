@@ -4,6 +4,7 @@ MANIFEST
 MANIFEST.NXS
 README
 String.pod
+String.pod.jp
 String.xs
 String.pm
 String.pm.NXS
@@ -23,4 +24,5 @@ t/subst.t
 t/substr.t
 t/test.t
 t/tr.t
+t/tr_h.t
 t/unary.t

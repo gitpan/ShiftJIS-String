@@ -3,7 +3,7 @@
 
 ######################### We start with some black magic to print on failure.
 
-BEGIN { $| = 1; print "1..18\n"; }
+BEGIN { $| = 1; print "1..20\n"; }
 END {print "not ok 1\n" unless $loaded;}
 
 use ShiftJIS::String qw(:all);
@@ -149,4 +149,21 @@ print strspn("XZ\0Z\0Y", "\0X\0YZ") == 6
   &&  strspn("‚ ‚¢‚¤‚¦‚¨", "") == 0
   &&  strcspn("‚ ‚¢‚¤‚¦‚¨", "") == 5
  ? "ok" : "not ok", " 18\n";
+
+print strtr(
+    "&lt;B&gt;&apos;&amp;&plusmn; &quot;&auml;&quot;&lt;/B&gt;",
+    "&apos;&quot;&amp;&lt;&gt;",
+    q|'"&<>|,
+    "",
+    "&[A-Za-z]+;")
+  eq qq|<B>'&&plusmn; "&auml;"</B>| ? "ok" : "not ok", " 19\n";
+
+print strtr(
+    "Caesar Aether Goethe",
+    "aeoeueAeOeUe",
+    "",
+    "d",
+    "[aouAOU]e",
+    "")
+  eq "Csar ther Gthe" ? "ok" : "not ok", " 20\n";
 

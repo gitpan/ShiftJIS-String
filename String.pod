@@ -325,6 +325,7 @@ B<MODIFIER>
     c   Complement the SEARCHLIST.
     d   Delete found but unreplaced characters.
     s   Squash duplicate replaced characters.
+    h   Returns a hash (or a hashref in scalar context) of histogram
     R   No use of character ranges.
     r   Allows to use reverse character ranges.
     o   Caches the conversion table internally.
@@ -343,6 +344,17 @@ B<MODIFIER>
 
   strtr("条件演算子の使いすぎは見苦しい", 'ぁ-ん', '＃', 'cs');
     # output: ＃の＃いすぎは＃しい
+
+If C<'h'> modifier is specified, returns a hash
+(or a hashref in scalar context) of histogram,
+whether the first argument is a reference or not.
+If you want to get the histogram and the modified string at once,
+pass a reference as the first argument and use its value after.
+
+  %hist_kana = strtr('日本語のカタカナ', 'ぁ-んァ-ヶｦ-ﾟ', '', 'h');
+    # examine apperence frequency of kana
+    # returns ('の' => 1, 'カ' => 2, 'タ' => 1, 'ナ' => 1),
+    # but the key order may differ from this.
 
 If C<'R'> modifier is specified, C<'-'> is not evaluated as a meta character
 but C<HYPHEN-MINUS> itself like in C<tr'''>. Compare:

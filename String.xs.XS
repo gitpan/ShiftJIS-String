@@ -818,14 +818,22 @@ kanaZ2H(src)
 	    }
 	    else if (*p == 0x81 && Is_SJ_ZKPCT2ND(p[1])) {
 		switch (*++p) {
-		    case 0x41: *d++ = 0xA4; break;
-		    case 0x42: *d++ = 0xA1; break;
-		    case 0x45: *d++ = 0xA5; break;
-		    case 0x4A: *d++ = 0xDE; break;
-		    case 0x4B: *d++ = 0xDF; break;
-		    case 0x5B: *d++ = 0xB0; break;
-		    case 0x75: *d++ = 0xA2; break;
-		    case 0x76: *d++ = 0xA3; break;
+		case 0x41:
+		    *d++ = 0xA4; break;
+		case 0x42:
+		    *d++ = 0xA1; break;
+		case 0x45:
+		    *d++ = 0xA5; break;
+		case 0x4A:
+		    *d++ = 0xDE; break;
+		case 0x4B:
+		    *d++ = 0xDF; break;
+		case 0x5B:
+		    *d++ = 0xB0; break;
+		case 0x75:
+		    *d++ = 0xA2; break;
+		case 0x76:
+		    *d++ = 0xA3; break;
 		}
 		++p; ++cnt;
 	    }
@@ -1157,112 +1165,112 @@ strtr_light (src, trans, mod = &PL_sv_no)
 	    cnt++;
 
 	switch (modes) {
-	    case 0 : /* c: false, d: false, s: false */
-	    case 2 : /* c: false, d: true,  s: false */
+	case 0: /* c: false, d: false, s: false */
+	case 2: /* c: false, d: true,  s: false */
 
-		if (found) {
-		    if (tbyte > 1)
-			*d++ = to[0];
-		    if (tbyte > 0)
-			*d++ = to[1];
-		}
-		else {
-		    if (fbyte > 1)
-			*d++ = fr[0];
-		    if (fbyte > 0)
-			*d++ = fr[1];
-		}
-		break;
+	    if (found) {
+		if (tbyte > 1)
+		    *d++ = to[0];
+		if (tbyte > 0)
+		    *d++ = to[1];
+	    }
+	    else {
+		if (fbyte > 1)
+		    *d++ = fr[0];
+		if (fbyte > 0)
+		    *d++ = fr[1];
+	    }
+	    break;
 
-	    case 1 : /* c: true, d: false, s: false */
+	case 1: /* c: true, d: false, s: false */
 
-		if (!found && tlen) {
+	    if (!found && tlen) {
+		if (lbyte > 1)
+		    *d++ = tolast[0];
+		if (lbyte > 0)
+		    *d++ = tolast[1];
+	    }
+	    else {
+		if (fbyte > 1)
+		    *d++ = fr[0];
+		if (fbyte > 0)
+		    *d++ = fr[1];
+	    }
+	    break;
+
+	case 3: /* c: true, d: true, s: false */
+	case 7: /* c: true, d: true, s: true  */
+
+	    if (found) {
+		if (fbyte > 1)
+		    *d++ = fr[0];
+		if (fbyte > 0)
+		    *d++ = fr[1];
+	    }
+	    break;
+
+	case 4: /* c: false, d: false, s: true */
+	case 6: /* c: false, d: true,  s: true */
+
+	    if (!found) {
+		pre[0] = pre[1] = prebyte = 0;
+		if (fbyte > 1)
+		    *d++ = fr[0];
+		if (fbyte > 0)
+		    *d++ = fr[1];
+	    }
+	    else if (tbyte && memNE(pre, to, 2)) {
+		if (tbyte > 1)
+		    *d++ = to[0];
+		if (tbyte > 0)
+		    *d++ = to[1];
+		pre[0]  = to[0];
+		pre[1]  = to[1];
+		prebyte = tbyte;
+	    }
+	    break;
+
+	case 5: /* c: true, d: false, s: true */
+
+	    if (found) {
+		pre[0] = pre[1] = prebyte = 0;
+		if (fbyte > 1)
+		    *d++ = fr[0];
+		if (fbyte > 0)
+		    *d++ = fr[1];
+	    }
+	    else {
+		tmp[0] = tmp[1] = tmpbyte = 0;
+		if (tlen) {
 		    if (lbyte > 1)
-			*d++ = tolast[0];
+			tmp[0] = tolast[0];
 		    if (lbyte > 0)
-			*d++ = tolast[1];
+			tmp[1] = tolast[1];
+		    tmpbyte = lbyte;
 		}
 		else {
 		    if (fbyte > 1)
-			*d++ = fr[0];
+			tmp[0] = fr[0];
 		    if (fbyte > 0)
-			*d++ = fr[1];
+			tmp[1] = fr[1];
+		    tmpbyte = fbyte;
 		}
-		break;
 
-	    case 3 : /* c: true, d: true, s: false */
-	    case 7 : /* c: true, d: true, s: true  */
-
-		if (found) {
-		    if (fbyte > 1)
-			*d++ = fr[0];
-		    if (fbyte > 0)
-			*d++ = fr[1];
+		if (memNE(tmp, pre, 2)) {
+		    if (tmpbyte > 1)
+			*d++ = tmp[0];
+		    if (tmpbyte > 0)
+			*d++ = tmp[1];
+		    pre[0]  = tmp[0];
+		    pre[1]  = tmp[1];
+		    prebyte = tmpbyte;
 		}
-		break;
+	    }
+	    break;
 
-	    case 4 : /* c: false, d: false, s: true */
-	    case 6 : /* c: false, d: true,  s: true */
-
-		if (!found) {
-		    pre[0] = pre[1] = prebyte = 0;
-		    if (fbyte > 1)
-			*d++ = fr[0];
-		    if (fbyte > 0)
-			*d++ = fr[1];
-	        }
-		else if (tbyte && memNE(pre, to, 2)) {
-		    if (tbyte > 1)
-			*d++ = to[0];
-		    if (tbyte > 0)
-			*d++ = to[1];
-		    pre[0]  = to[0];
-		    pre[1]  = to[1];
-		    prebyte = tbyte;
-	        }
-		break;
-
-	    case 5 : /* c: true, d: false, s: true */
-
-		if (found) {
-		    pre[0] = pre[1] = prebyte = 0;
-		    if (fbyte > 1)
-			*d++ = fr[0];
-		    if (fbyte > 0)
-			*d++ = fr[1];
-		}
-		else {
-		    tmp[0] = tmp[1] = tmpbyte = 0;
-		    if (tlen) {
-			if (lbyte > 1)
-			    tmp[0] = tolast[0];
-			if (lbyte > 0)
-			    tmp[1] = tolast[1];
-			tmpbyte = lbyte;
-		    }
-		    else {
-			if (fbyte > 1)
-			    tmp[0] = fr[0];
-			if (fbyte > 0)
-			    tmp[1] = fr[1];
-			tmpbyte = fbyte;
-		    }
-
-		    if (memNE(tmp, pre, 2)) {
-			if (tmpbyte > 1)
-			    *d++ = tmp[0];
-			if (tmpbyte > 0)
-			    *d++ = tmp[1];
-			pre[0]  = tmp[0];
-			pre[1]  = tmp[1];
-			prebyte = tmpbyte;
-		    }
-		}
-		break;
-
-	    default :
-		croak(PkgName " Panic! Invalid closure in trclosure");
-		break;
+	default:
+	    croak(PkgName " Panic! Invalid closure in trclosure");
+	    break;
 	}
     }
     *d = '\0';
@@ -1599,28 +1607,28 @@ strcmp (l_sv, r_sv)
 	    rint = pL != eL ? 1 : pR != eR ? -1 : 0;
     }
     switch (ix) {
-	case 0 : /* cmp */
-	    XPUSHs(sv_2mortal(newSViv(rint)));
-	    break;
-	case 1 : /* EQ */
-	    XPUSHs(sv_2mortal(boolSV(rint == 0)));
-	    break;
-	case 2 : /* NE */
-	    XPUSHs(sv_2mortal(boolSV(rint != 0)));
-	    break;
-	case 3 : /* LT */
-	    XPUSHs(sv_2mortal(boolSV(rint < 0)));
-	    break;
-	case 4 : /* LE */
-	    XPUSHs(sv_2mortal(boolSV(rint <= 0)));
-	    break;
-	case 5 : /* GT */
-	    XPUSHs(sv_2mortal(boolSV(rint > 0)));
-	    break;
-	case 6 : /* GE */
-	    XPUSHs(sv_2mortal(boolSV(rint >= 0)));
-	    break;
-	default : /* oops */
-	    croak(PkgName " Panic switch in strcmp XS");
-	    break;
+    case 0: /* cmp */
+	XPUSHs(sv_2mortal(newSViv(rint)));
+	break;
+    case 1: /* EQ */
+	XPUSHs(sv_2mortal(boolSV(rint == 0)));
+	break;
+    case 2: /* NE */
+	XPUSHs(sv_2mortal(boolSV(rint != 0)));
+	break;
+    case 3: /* LT */
+	XPUSHs(sv_2mortal(boolSV(rint < 0)));
+	break;
+    case 4: /* LE */
+	XPUSHs(sv_2mortal(boolSV(rint <= 0)));
+	break;
+    case 5: /* GT */
+	XPUSHs(sv_2mortal(boolSV(rint > 0)));
+	break;
+    case 6: /* GE */
+	XPUSHs(sv_2mortal(boolSV(rint >= 0)));
+	break;
+    default : /* oops */
+	croak(PkgName " Panic switch in strcmp XS");
+	break;
     }

@@ -1,4 +1,4 @@
-ShiftJIS::String: version 0.20
+ShiftJIS::String: version 1.00
 ==============
 
 NAME
@@ -21,6 +21,10 @@ DESCRIPTION
 This module provides some functions which emulate
 the corresponding CORE functions and will help someone
 to manipulate multiple-byte character sequences in Shift_JIS.
+
+* Functions other than length(), substr(), index(), rindex()
+should have different names from those
+of the corresponding CORE:: functions.
 
 INSTALLATION
 
@@ -52,6 +56,21 @@ PREREQUISITES
 
    Perl 5.003 or later (Non-XS version).
    Perl 5.6 or later (XS version).
+
+POD
+
+The documents for this module are written in Shift_JIS.
+(The explanations are given in English in String.pod,
+but some sample codes include Shift_JIS literals.)
+The CPAN Archiver should make it unreadable.
+
+The HTML-ized PODs are provided in my website.
+
+  String.pod
+    http://homepage1.nifty.com/nomenclator/perl/ShiftJIS-String.html
+
+  String.pod.jp
+    http://homepage1.nifty.com/nomenclator/perl/ShiftJIS-String-j.html
 
 COPYRIGHT AND LICENCE
 

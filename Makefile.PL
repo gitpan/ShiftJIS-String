@@ -11,7 +11,7 @@ use File::Copy qw();
 
 my $arg = $ARGV[0] || "";
 
-if ($arg =~ /^no/i and -f "String.xs") {
+if ($arg =~ /^n/i and -f "String.xs") {
     print STDERR "Disabling XS in sources...\n";
 
     die "***** Failed, sources could be inconsistent! *****\n"
@@ -21,7 +21,7 @@ if ($arg =~ /^no/i and -f "String.xs") {
 	and File::Copy::move('String.xs',	'String.xs.XS')
 	and File::Copy::move('String.pm.NXS',	'String.pm');
 }
-if ($arg =~ /^xs/i and -f "String.xs.XS") {
+if ($arg =~ /^x/i and -f "String.xs.XS") {
     print STDERR "Enabling XS in sources...\n";
 
     die "***** Failed, sources could be inconsistent! *****\n"
