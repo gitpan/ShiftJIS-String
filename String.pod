@@ -237,12 +237,6 @@ returned if a reference to a scalar variable is used as the first argument.
 The returned lvalue is not aware of Shift-JIS,
 then successive assignment may cause unexpected results.
 
-    $str = "0123456789";
-    $lval  = &substr(\$str,3,1);
-    $$lval = "‚ ‚¢";
-    $$lval = "a";
-    # $str is NOT "012a‚¢456789", but an illegal string "012a\xA0‚¢456789".
-
 Get lvalue before any assignment if you are not sure.
 
     $str = "0123456789";
@@ -751,7 +745,7 @@ SADAHIRO Tomoyuki
 
   http://homepage1.nifty.com/nomenclator/perl/
 
-  Copyright(C) 2001-2003, SADAHIRO Tomoyuki. Japan. All rights reserved.
+  Copyright(C) 2001-2004, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
   This module is free software; you can redistribute it
   and/or modify it under the same terms as Perl itself.

@@ -1,5 +1,5 @@
 
-BEGIN { $| = 1; print "1..22\n"; }
+BEGIN { $| = 1; print "1..21\n"; }
 END {print "not ok 1\n" unless $loaded;}
 
 use ShiftJIS::String qw(:all);
@@ -164,14 +164,6 @@ $$lval = "a";
 
 print $str eq "012a‚¢456789"
 	? "ok" : "not ok", " 21\n";
-
-$str = "0123456789";
-$lval  = &substr(\$str,3,1);
-$$lval = "‚ ‚¢";
-$$lval = "a";
-
-print $str eq "012a\xA0‚¢456789"
-	? "ok" : "not ok", " 22\n";
 
 1;
 __END__

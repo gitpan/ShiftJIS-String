@@ -224,13 +224,6 @@ C<SCALAR> のその部分を置換して、その部分の元の部分文字列を返します。
 なっていますから、）Shift-JISに対応していません。従って、
 ２度目の代入や変更では期待通りの結果にならない可能性があります。
 
-    $str = "0123456789";
-    $lval  = &substr(\$str,3,1);
-    $$lval = "あい";
-    $$lval = "a";
-    # $str は "012aい456789" ではなくて、
-    # 不正な文字列 "012a\xA0い456789" になります。
-
 よくわからなければ、とにかく代入の前に左辺値を取得するのがよいでしょう。
 
     $str = "0123456789";
@@ -562,8 +555,8 @@ C<'o'> 修飾子なしでは、
 呼び出しのたびに渡す必要がありません。
 
   my $digit_tr = trclosure("1234567890-", "一二三四五六七八九〇－");
-  print &$digit_tr ("TEL ：0124-45-6789\n"); # ok to perl 5.003
-  print $digit_tr->("FAX ：0124-51-5368\n"); # perl 5.004 or better
+  print &$digit_tr ("TEL ：0124-45-6789\n"); # perl 5.003 でも ok
+  print $digit_tr->("FAX ：0124-51-5368\n"); # perl 5.004 以降
 
   # 出力:
   # TEL ：〇一二四－四五－六七八九
@@ -744,7 +737,7 @@ SADAHIRO Tomoyuki （貞廣 知行）
 
   http://homepage1.nifty.com/nomenclator/perl/
 
-  Copyright(C) 2001-2003, SADAHIRO Tomoyuki. Japan. All rights reserved.
+  Copyright(C) 2001-2004, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
   This module is free software; you can redistribute it
   and/or modify it under the same terms as Perl itself.

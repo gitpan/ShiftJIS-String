@@ -1,4 +1,4 @@
-ShiftJIS::String: version 1.02
+ShiftJIS::String: version 1.03
 ==============
 
 NAME
@@ -56,7 +56,7 @@ to build XSUB, type the following:
 PREREQUISITES
 
    Perl 5.003 or later for pure Perl edition
-   (Perl 5.005 or later Recommended.)
+  (Perl 5.005 or later Recommended.)
 
    Perl 5.6 or later for XSUB edition.
 
@@ -72,12 +72,12 @@ The HTML-ized PODs are provided in my website.
   String.pod
     http://homepage1.nifty.com/nomenclator/perl/ShiftJIS-String.html
 
-  String.pod.jp
+  JAPANESE (POD in japanese)
     http://homepage1.nifty.com/nomenclator/perl/ShiftJIS-String-j.html
 
 COPYRIGHT AND LICENCE
 
-   Copyright(C) 2001-2003, SADAHIRO Tomoyuki. Japan. All rights reserved.
+   Copyright(C) 2001-2004, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
    This module is free software; you can redistribute it
    and/or modify it under the same terms as Perl itself.

@@ -1,15 +1,15 @@
 Changes
-Makefile.PL
-MANIFEST
-MANIFEST.XS
 README
+Makefile.PL
+MANIFEST	for Pure Perl
+MANIFEST.XS	for XSUB
+String.pm	for Pure Perl
+String.pod
 enableXS
 disableXS
-String.pod
-String.pod.jp
-String.xsX
-String.pm
-String.pmX
+String.xsX	for XSUB
+String.pmX	for XSUB
+JAPANESE	POD in Japanese
 samples/trans.txt
 t/alnum.t
 t/capture.t

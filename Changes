@@ -1,5 +1,10 @@
 Revision history for Perl module ShiftJIS::String.
 
+1.03  Sat Apr 24 05:48:48 2004
+    - test 22 in test.t is removed since the result of using a substr
+      lvalue multiple times is fixed in perl 5.9.1.
+    - POD in Japanese is renamed as JAPANESE.
+
 1.02  Sun Jul 20 12:35:10 2003
     - changed INSTALLATION (cf. README).
     - simplified Makefile.PL.
@@ -11,7 +16,7 @@ Revision history for Perl module ShiftJIS::String.
 1.01  Tue Apr 29 10:49:07 2003
     - added trim(), ltrim(), rtrim(), rspan(), rcspan().
     - fix: With Perl 5.003, index and rindex were wrong
-      when SUBSTR is \0-terminated.
+      when SUBSTR ends with \0.
 
 1.00  Sat Sep 15 17:12:22 2002
     - strtr supports 'h' modifier (returns a hash or a hashref).
