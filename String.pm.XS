@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '0.11';
+$VERSION = '0.12';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -66,18 +66,31 @@ sub strtr($$$;$$$)
 ##
 sub trclosure($$;$$$)
 {
-  my(@fr, @to, $r, $R, $c, $d, $s, $i, %hash);
+  my(@fr, @to, $noxs, $r, $R, $c, $d, $s, $i, %hash);
   my($fr, $to, $mod, $re, $tore) = @_;
+  $mod ||= ''; # '0' is not supposed.
 
-  $r = defined $mod && $mod =~ /r/;
-  $R = defined $mod && $mod =~ /R/;
+  $noxs = $[ <= CORE::index($mod, 'n');
+  $r = $[ <= CORE::index($mod, 'r');
+  $R = $[ <= CORE::index($mod, 'R');
+
+  if (! $noxs && ! ref $fr && ! ref $to && !defined $re && !defined $tore) {
+    if (!$R) {
+      $fr = mkrange($fr, $r);
+      $to = mkrange($to, $r);
+    }
+    return sub {
+      my $src = shift;
+      strtr_light($src, $fr, $to, $mod);
+    };
+  }
 
   if (ref $fr) {
     @fr = @$fr;
     $re = defined $re ? "$re|$Char" :
        join('|', map(quotemeta($_), @$fr), $Char);
   } else {
-    $fr = scalar mkrange($fr, $r) unless $R;
+    $fr = mkrange($fr, $r) unless $R;
     $re = defined $re ? "$re|$Char" : $Char;
     @fr = $fr =~ /\G$re/g;
   }
@@ -86,15 +99,15 @@ sub trclosure($$;$$$)
     $tore = defined $tore ? "$tore|$Char" :
        join('|', map(quotemeta($_), @$to), $Char);
   } else {
-    $to = scalar mkrange($to, $r) unless $R;
+    $to = mkrange($to, $r) unless $R;
     $tore = defined $tore ? "$tore|$Char" : $re;
     @to = $to =~ /\G$tore/g;
   }
 
-  $c = defined $mod && $mod =~ /c/;
-  $d = defined $mod && $mod =~ /d/;
-  $s = defined $mod && $mod =~ /s/;
-  $mod = $s * 4 + $d * 2 + $c;
+  $c = $[ <= CORE::index($mod, 'c');
+  $d = $[ <= CORE::index($mod, 'd');
+  $s = $[ <= CORE::index($mod, 's');
+  my $modes = $s * 4 + $d * 2 + $c;
 
   for ($i = 0; $i < @fr; $i++) {
     next if exists $hash{ $fr[$i] };
@@ -103,7 +116,27 @@ sub trclosure($$;$$$)
         : $d && !$c ? '' : $fr[$i];
   }
   return
-    $mod == 3 || $mod == 7 ?
+    $modes == 0 || $modes == 2 ?
+      sub { # $c: false, $d: true/false, $s: false, $mod:  0 or 2
+        my $str = shift;
+        my $cnt = 0;
+        (ref $str ? $$str : $str) =~ s{($re)}{
+          exists $hash{$1} ? (++$cnt, $hash{$1}) : $1;
+        }ge;
+        ref $str ? $cnt : $str;
+      } :
+
+    $modes == 1 ?
+      sub { # $c: true, $d: false, $s: false, $mod: 1
+        my $str = shift;
+        my $cnt = 0;
+        (ref $str ? $$str : $str) =~ s{($re)}{
+          exists $hash{$1} ? $1 : (++$cnt, @to) ? $to[-1] : $1;
+        }ge;
+        ref $str ? $cnt : $str;
+      } :
+
+    $modes == 3 || $modes == 7 ?
       sub { # $c: true, $d: true, $s: true/false, $mod: 3 or 7
         my $str = shift;
         my $cnt = 0;
@@ -112,21 +145,8 @@ sub trclosure($$;$$$)
         }ge;
         return ref $str ? $cnt : $str;
       } :
-    $mod == 5 ?
-      sub { # $c: true, $d: false, $s: true, $mod: 5
-        my $str = shift;
-        my $cnt = 0;
-        my $pre = '';
-        my $now;
-        (ref $str ? $$str : $str) =~ s{($re)}{
-          exists $hash{$1} ? ($pre = '', $1) : (++$cnt, 
-            $now = @to ? $to[-1] : $1, 
-            $now eq $pre ? '' : ($pre = $now) 
-          );
-        }ge;
-        ref $str ? $cnt : $str;
-      } :
-    $mod == 4 || $mod == 6 ?
+
+    $modes == 4 || $modes == 6 ?
       sub { # $c: false, $d: true/false, $s: true, $mod: 4 or 6
         my $str = shift;
         my $cnt = 0;
@@ -138,21 +158,18 @@ sub trclosure($$;$$$)
         }ge;
         ref $str ? $cnt : $str;
       } :
-    $mod == 1 ?
-      sub { # $c: true, $d: false, $s: false, $mod: 1
+
+    $modes == 5 ?
+      sub { # $c: true, $d: false, $s: true, $mod: 5
         my $str = shift;
         my $cnt = 0;
+        my $pre = '';
+        my $tmp;
         (ref $str ? $$str : $str) =~ s{($re)}{
-          exists $hash{$1} ? $1 : (++$cnt, @to) ? $to[-1] : $1;
-        }ge;
-        ref $str ? $cnt : $str;
-      } :
-    $mod == 0 || $mod == 2 ?
-      sub { # $c: false, $d: true/false, $s: false, $mod:  0 or 2
-        my $str = shift;
-        my $cnt = 0;
-        (ref $str ? $$str : $str) =~ s{($re)}{
-          exists $hash{$1} ? (++$cnt, $hash{$1}) : $1;
+          exists $hash{$1} ? ($pre = '', $1) : (++$cnt, 
+            $tmp = @to ? $to[-1] : $1, 
+            $tmp eq $pre ? '' : ($pre = $tmp) 
+          );
         }ge;
         ref $str ? $cnt : $str;
       } :

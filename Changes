@@ -1,5 +1,12 @@
 Revision history for Perl module ShiftJIS::String.
 
+0.12  Mon Dec 24 17:57:11 2001
+    - strtr() and trclosure() use XS when task is simpler,
+      i.e. both SEARCHLIST and REPLACEMENTLIST are strings (not an arrayref),
+       and neither PATTERN nor TOPATTERN are specified.
+      ('n' modifier enforces to use the Non-XS subroutine.)
+    - amplify tests and documents a bit.
+
 0.11  Sun Dec 23 12:20:47 2001
     - an XS version and a Non-XS version are in the package.
     - reverse character ranges without confirmation (by a true 2nd argument

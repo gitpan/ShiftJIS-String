@@ -3,7 +3,7 @@
 
 ######################### We start with some black magic to print on failure.
 
-BEGIN { $| = 1; print "1..17\n"; }
+BEGIN { $| = 1; print "1..19\n"; }
 END {print "not ok 1\n" unless $loaded;}
 
 use ShiftJIS::String qw(:kana :H2Z :Z2H toupper tolower);
@@ -88,3 +88,47 @@ print hiXka('ゐゑゎかけアヴヰヱヮヵヶウ') eq 'ヰヱヮカケあう゛ゐゑゎかけう'
     print $ng == 0 ? "ok" : "not ok", " ", ++$loaded, "\n";
   }
 }
+
+{
+  my $ng = 0;
+  my $ary;
+  for $ary (
+    [ qw/ こんちには こんちには   0 / ],
+    [ qw/ ｺﾝﾆﾁﾊ      コンニチハ   5 / ],
+    [ qw/ ﾊﾟｰﾙ       パール       3 / ],
+    [ qw/ ﾌﾟﾛｸﾞﾗﾑ言語 プログラム言語 5 / ],
+    [ qw/ ﾋﾞﾀﾞｸｵﾝ    ビダクオン   5 / ],
+    [ qw/ ｶﾟｷﾟｸﾟｹﾟｺﾟ カ゜キ゜ク゜ケ゜コ゜ 10 / ],
+    [ qw/ えﾞ｡       え゛。       2 / ],
+    [ qw/ ｴﾞ｡        エ゛。       3 / ],
+    [ qw/ Aｳﾞ｡B      Aヴ。B       2 / ],
+  ) {
+    my $str = $ary->[0];
+    $ng++ unless kanaH2Z($str)  eq $ary->[1];
+    $ng++ unless $str eq $ary->[0];
+    $ng++ unless kanaH2Z(\$str) eq $ary->[2];
+    $ng++ unless $str eq $ary->[1];
+  }
+  print $ng == 0 ? "ok" : "not ok", " ", ++$loaded, "\n";
+}
+
+
+{
+  my $ng = 0;
+  my $ary;
+  for $ary (
+    [ qw/ あいうえABCDこんちには あいうえabcdこんちには   4 / ],
+    [ qw/ アルファベットを含まない  アルファベットを含まない 0 / ],
+    [ qw/ Perl_Module    perl_module   2 / ],
+    [ qw/ Ｐｅｒｌを使う Ｐｅｒｌを使う 0 / ],
+  ) {
+    my $str = $ary->[0];
+    $ng++ unless tolower($str)  eq $ary->[1];
+    $ng++ unless $str eq $ary->[0];
+    $ng++ unless tolower(\$str) eq $ary->[2];
+    $ng++ unless $str eq $ary->[1];
+  }
+  print $ng == 0 ? "ok" : "not ok", " ", ++$loaded, "\n";
+}
+
+

@@ -17,9 +17,10 @@ print mkrange("") eq ""
   ? "ok" : "not ok", " 2\n";
 print mkrange('-+\-XYZ-') eq "-+-XYZ-"
   ? "ok" : "not ok", " 3\n";
-print mkrange("A-D") eq "ABCD"
+print join(':', mkrange "A-D") eq "A:B:C:D"
    && mkrange('p-e-r-l', 1) eq 'ponmlkjihgfefghijklmnopqrqponml'
    && mkrange("‚Ÿ-‚¤") eq "‚Ÿ‚ ‚¡‚¢‚£‚¤"
+   && mkrange("A\000B\000C") eq "A\000B\000C"
   ? "ok" : "not ok", " 4\n";
 print mkrange("0-9‚O-‚X") eq "0123456789‚O‚P‚Q‚R‚S‚T‚U‚V‚W‚X"
   ? "ok" : "not ok", " 5\n";

@@ -47,23 +47,7 @@ Returns the length in characters of the supplied string.
 
 =item C<strrev(STRING)>
 
-Returns a reversed string.
-
-=back
-
-=head2 Case of the Alphabet
-
-=over 4
-
-=item C<toupper(STRING)>
-
-Returns an uppercased string of C<STRING>.
-Alters only half-width Latin characters C<a-z>.
-
-=item C<tolower(STRING)>
-
-Returns a lowercased string of C<STRING>.
-Alters only half-width Latin characters C<A-Z>.
+Returns a reversed string (having all characters in the opposite order).
 
 =back
 
@@ -181,7 +165,7 @@ The order of Shift_JIS characters is:
 So, mkrange('ˆŸ-˜r') returns the list of all characters in level 1 Kanji.
 
 If true value is specified as the second parameter,
-Reverse character ranges such as C<'9-0'>, C<'Z-A'>.
+Reverse character ranges such as C<'9-0'>, C<'Z-A'> can be used;
 otherwise, reverse character ranges are croaked.
 
 =back
@@ -374,32 +358,74 @@ C<trclosure()> internally and uses the returned closure.
 
 =back
 
-=head2 Conversion between hiragana and katakana
+=head2 Case of the Alphabet
 
 =over 4
 
-=item C<kanaH2Z(STRING)>
+=item C<toupper(STRING or SCALAR REF)>
+
+Returns an uppercased string of C<STRING>.
+Converts only half-width Latin characters C<a-z> to C<A-Z>.
+
+If a reference of scalar variable is specified as the first argument,
+the string referred to it is uppercased and
+the number of characters replaced is returned.
+
+=item C<tolower(STRING or SCALAR REF)>
+
+Returns a lowercased string of C<STRING>.
+Converts only half-width Latin characters C<A-Z> to C<a-z>.
+
+If a reference of scalar variable is specified as the first argument,
+the string referred to it is lowercased and
+the number of characters replaced is returned.
+
+=back
+
+=head2 Conversion between hiragana and katakana
+
+If a reference of scalar variable is specified as the first argument,
+the string referred to it is converted and
+the number of characters replaced is returned.
+Otherwise, returns a string converted and
+the specified string is unaffected.
+
+B<Note:> The conversion between a voiced (or semivoiced) 
+katakana (or hiragana), such as C<'ƒK'>, C<'ƒp'>,
+and hankaku katakana with a voiced mark 
+or a semi-voiced mark, such as C<'¶Ş'>, C<'Êß'>,
+is counted as 1.
+Similarly, the conversion between zenkaku hiragana C<'‚¤J'> and 
+zenkaku katakana C<'ƒ”'> is counted as 1.
+
+=over 4
+
+=item C<kanaH2Z(STRING or SCALAR REF)>
+
+=item C<kataH2Z(STRING or SCALAR REF)>
 
 Converts Hankaku Katakana to Zenkaku Katakana
 
-=item C<kataZ2H(STRING)>
+B<Note:> C<kataH2Z> is an alias of C<kanaH2Z>.
+
+=item C<kataZ2H(STRING or SCALAR REF)>
 
 Converts Zenkaku Katakana to Hankaku Katakana
 
-=item C<kanaZ2H(STRING)>
+=item C<kanaZ2H(STRING or SCALAR REF)>
 
 Converts Zenkaku Hiragana and Katakana to Hankaku Katakana
 
-=item C<hiXka(STRING)>
+=item C<hiXka(STRING or SCALAR REF)>
 
 Converts Zenkaku Hiragana to Zenkaku Katakana
 and Zenkaku Katakana to Zenkaku Hiragana at once.
 
-=item C<hi2ka(STRING)>
+=item C<hi2ka(STRING or SCALAR REF)>
 
 Converts Zenkaku Hiragana to Zenkaku Katakana
 
-=item C<ka2hi(STRING)>
+=item C<ka2hi(STRING or SCALAR REF)>
 
 Converts Zenkaku Katakana to Zenkaku Hiragana
 
@@ -407,14 +433,20 @@ Converts Zenkaku Katakana to Zenkaku Hiragana
 
 =head2 Conversion of Whitespace Characters
 
+If a reference of scalar variable is specified as the first argument,
+the string referred to it is converted and
+the number of characters replaced is returned.
+Otherwise, returns a string converted and
+the specified string is unaffected.
+
 =over 4
 
-=item C<spaceH2Z(STRING)>
+=item C<spaceH2Z(STRING or SCALAR REF)>
 
 Converts space (half-width) to ideographic space (full-width)
 in the specified string and returns the converted string.
 
-=item C<spaceZ2H(STRING)>
+=item C<spaceZ2H(STRING or SCALAR REF)>
 
 Converts ideographic space (full-width) to space (half-width)
 in the specified string and returns the converted string.

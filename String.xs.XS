@@ -58,6 +58,13 @@
 #define isHMARU(c) ((c)==0xDF)
 #define isH_VUp(p) ((*(p))==0xB3 && (*((p)+1))==0xDE)
 
+typedef struct strtr_table {
+    U8   frchar[2]; /* from-multibyte char */
+    U8   tochar[2]; /* to-multibyte char */
+    char frbyte;    /* length of from-multibyte char */
+    char tobyte;    /* length of to-multibyte char */
+} TABLE_t;
+
 /* 0xA0 to 0xDF : JIS X 0201 => Trailing byte : JIS X 0208 */
 static STDCHAR HKANA_TRAIL[] = {
     0x00, 0x42, 0x75, 0x76, 0x41, 0x45, 0x92, 0x40,
@@ -739,7 +746,7 @@ spaceH2Z(src)
     d = (U8*)SvPVX(dst);
 
     for (p = s; p < e;) {
-	if (isSJ2BTp(p,e)) { /* zenkaku */
+	if (isSJ2BTp(p,e)) {
 	    *d++ = *p++;
 	    *d++ = *p++;
 	} else if (isRSPACE(*p)) {
@@ -761,6 +768,7 @@ spaceH2Z(src)
     }
   OUTPUT:
     RETVAL
+
 
 
 SV *
@@ -831,10 +839,8 @@ toupper(src)
 	(void)SvPOK_only(dst);
 	s = (U8*)SvPV(dst, byte);
     }
-    e = s + byte;
-
-    for (p = s; p < e;) {
-	if (isSJ2BTp(p,e)) { /* zenkaku */
+    for (p = s, e = s + byte; p < e;) {
+	if (isSJ2BTp(p,e)) {
 	    p += 2;
 	} else if (ix == 0 && isRLOWER(*p)) {
 	    *p++ -= 0x20;
@@ -846,11 +852,7 @@ toupper(src)
 	    ++p;
 	}
     }
-    if (SvROK(src)) {
-	RETVAL = newSViv(cnt);
-    } else {
-	RETVAL = dst;
-    }
+    RETVAL = SvROK(src) ? newSViv(cnt) : dst;
   OUTPUT:
     RETVAL
 
@@ -908,9 +910,9 @@ mkrange(src, rev = &PL_sv_undef)
 		else {
 		    char *m; char msg[VIDUAL_CHAR_MAX * 2 + 2];
 		    m = msg;
-		    m = vidualize_char(m, fr);
+		    m = (char*)vidualize_char((U8*)m, fr);
 		    *m++ = '-';
-		    m = vidualize_char(m, to);
+		    m = (char*)vidualize_char((U8*)m, to);
 		    *m++ = '\0';
 		    croak("ShiftJIS::String Invalid character range %s", msg);
 		}
@@ -961,3 +963,219 @@ mkrange(src, rev = &PL_sv_undef)
 	    PUSHs(sv_2mortal(newSVpv(p,c)));
 	}
     }
+
+
+SV*
+strtr_light (src, search, replace, mod = "")
+    SV * src;
+    SV * search;
+    SV * replace;
+    char * mod;
+  PROTOTYPE: $$$;$
+  PREINIT:
+    SV *dst;
+    TABLE_t *from2to, *i_table, *lasttable, *foundtable;
+    bool mod_c, mod_d, mod_s, found;
+    int modes;
+    U8 *p, *e, *s, *d, *fr, *to;
+    STRLEN sbyte, dbyte, fbyte, tbyte;
+    U8 mb[2], pre[2], tmp[2], *tolast;
+    STRLEN mbyte, prebyte, tmpbyte, lbyte;
+    int i, flen, tlen, cnt, sizetable;
+  CODE:
+    s = SvROK(src) ? (U8*)SvPV_force(SvRV(src), sbyte) : (U8*)SvPV(src, sbyte);
+
+    fr = (U8*)SvPV(search,  fbyte);
+    to = (U8*)SvPV(replace, tbyte);
+    flen = length(fr, fbyte);
+    tlen = length(to, tbyte);
+
+    mod_c = strchr(mod,'c') != NULL;
+    mod_d = strchr(mod,'d') != NULL;
+    mod_s = strchr(mod,'s') != NULL;
+    modes = (mod_s << 2) | (mod_d << 1) | mod_c;
+
+    sizetable = flen > tlen ? flen : tlen;
+    Newz(0, from2to, sizetable, TABLE_t);
+
+    e = fr + fbyte;
+    for (p = fr, i_table = from2to; p < e; i_table++) {
+	if (isSJ2BTp(p,e)) {
+	    i_table->frchar[0] = *p++;
+	    i_table->frchar[1] = *p++;
+	    i_table->frbyte    = 2;
+	} else {
+	    i_table->frchar[0] = *p++;
+	    i_table->frchar[1] = '\0';
+	    i_table->frbyte    = 1;
+	}
+    }
+
+    e = to + tbyte;
+    for (p = to, i_table = from2to; p < e; i_table++) {
+	if (isSJ2BTp(p,e)) {
+	    i_table->tochar[0] = *p++;
+	    i_table->tochar[1] = *p++;
+	    i_table->tobyte    = 2;
+	} else {
+	    i_table->tochar[0] = *p++;
+	    i_table->tochar[1] = '\0';
+	    i_table->tobyte    = 1;
+	}
+    }
+
+    if (tlen) {
+	lasttable = from2to + tlen - 1;
+	tolast = lasttable->tochar;
+	lbyte  = lasttable->tobyte;
+	if (!mod_d) {
+	    for (i = tlen; i < flen; i++) {
+		from2to[i].tochar[0] = tolast[0];
+		from2to[i].tochar[1] = tolast[1];
+		from2to[i].tobyte    = lbyte;
+	    }
+	}
+    } else {
+	lasttable = NULL;
+	if(!mod_d || mod_c){
+	    for (i = 0; i < flen; i++) {
+		from2to[i].tochar[0] = from2to[i].frchar[0];
+		from2to[i].tochar[1] = from2to[i].frchar[1];
+		from2to[i].tobyte    = from2to[i].frbyte;
+	    }
+	}
+    }
+
+    dbyte = sbyte * 2 + 1;
+    dst = newSV(dbyte);
+    (void)SvPOK_only(dst);
+    d = (U8*)SvPVX(dst);
+
+    pre[0] = pre[1] = prebyte = 0;
+    tmp[0] = tmp[1] = tmpbyte = 0;
+
+    e = s + sbyte;
+    for (p = s, cnt = 0; p < e; ) {
+	if (isSJ2BTp(p,e)) {
+	    mb[0] = *p++;
+	    mb[1] = *p++;
+	    mbyte = 2;
+	} else {
+	    mb[0] = *p++;
+	    mb[1] = '\0';
+	    mbyte = 1;
+	}
+
+	found = 0;
+
+	for (i = 0; i < flen; i++) {
+	    if (mbyte == from2to[i].frbyte
+	     && mb[0] == from2to[i].frchar[0]
+	     && mb[1] == from2to[i].frchar[1])
+	    {
+		found = 1;
+		foundtable = from2to + i;
+		break;
+	    }
+	}
+
+	if(mod_c ^ found) cnt++;
+
+	switch (modes) {
+	    case 0 : /* c: false, d: false, s: false */
+	    case 2 : /* c: false, d: true,  s: false */
+
+		if (found) {
+		    if (foundtable->tobyte > 0) *d++ = foundtable->tochar[0];
+		    if (foundtable->tobyte > 1) *d++ = foundtable->tochar[1];
+		} else {
+		    if (mbyte > 0) *d++ = mb[0];
+		    if (mbyte > 1) *d++ = mb[1];
+		}
+		break;
+
+	    case 1 : /* c: true, d: false, s: false */
+
+		if (!found && tlen) {
+		    if (lbyte > 0) *d++ = tolast[0];
+		    if (lbyte > 1) *d++ = tolast[1];
+		} else {
+		    if (mbyte > 0) *d++ = mb[0];
+		    if (mbyte > 1) *d++ = mb[1];
+		}
+		break;
+
+	    case 3 : /* c: true, d: true, s: false */
+	    case 7 : /* c: true, d: true, s: true  */
+
+		if (found) {
+		    if (mbyte > 0) *d++ = mb[0];
+		    if (mbyte > 1) *d++ = mb[1];
+		}
+		break;
+
+	    case 4 : /* c: false, d: false, s: true */
+	    case 6 : /* c: false, d: true,  s: true */
+
+		if (!found) {
+		    pre[0] = pre[1] = prebyte = 0;
+		    if (mbyte > 0) *d++ = mb[0];
+		    if (mbyte > 1) *d++ = mb[1];
+	        } else if (foundtable->tobyte
+			&& memcmp(pre, foundtable->tochar,2) )
+		{
+		    if (foundtable->tobyte > 0) *d++ = foundtable->tochar[0];
+		    if (foundtable->tobyte > 1) *d++ = foundtable->tochar[1];
+		    pre[0]  = foundtable->tochar[0];
+		    pre[1]  = foundtable->tochar[1];
+		    prebyte = foundtable->tobyte;
+	        }
+		break;
+
+	    case 5 : /* c: true, d: false, s: true */
+
+		if (found) {
+		    pre[0] = pre[1] = prebyte = 0;
+		    if (mbyte > 0) *d++ = mb[0];
+		    if (mbyte > 1) *d++ = mb[1];
+		} else {
+		    tmp[0] = tmp[1] = tmpbyte = 0;
+		    if (tlen) {
+			if (lbyte > 0) tmp[0] = tolast[0];
+			if (lbyte > 1) tmp[1] = tolast[1];
+			tmpbyte = lbyte;
+		    } else {
+			if (mbyte > 0) tmp[0] = mb[0];
+			if (mbyte > 1) tmp[1] = mb[1];
+			tmpbyte = mbyte;
+		    }
+		    if (memcmp(tmp, pre, 2)) {
+			if (tmpbyte > 0) *d++ = tmp[0];
+			if (tmpbyte > 1) *d++ = tmp[1];
+			pre[0] = tmp[0];
+			pre[1] = tmp[1];
+			prebyte = tmpbyte;
+		    }
+		}
+		break;
+
+	    default :
+		croak("ShiftJIS::String Panic! Invalid closure in trclosure");
+		break;
+	}
+    }
+
+    dbyte = d - (U8*)SvPVX(dst);
+    SvCUR_set(dst, dbyte);
+
+    Safefree(from2to);
+
+    if (SvROK(src)) {
+	RETVAL = newSViv(cnt);
+	sv_setsv(SvRV(src), dst);
+    } else {
+	RETVAL = dst;
+    }
+  OUTPUT:
+    RETVAL
+

@@ -12,8 +12,8 @@ $^W = 1;
 $loaded = 1;
 print "ok 1\n";
 
-if($] < 5.005){
-  foreach(2..14) { print "ok $_\n"; }
+if ($] < 5.005) {
+  foreach(2..16) { print "ok $_\n"; }
   exit;
 }
 
