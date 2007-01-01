@@ -9,6 +9,7 @@ String.xs	for XSUB
 enableXS
 disableXS
 String.pmN	for Pure Perl
+META.yml
 JAPANESE	POD in Japanese
 samples/trans.txt
 t/alnum.t

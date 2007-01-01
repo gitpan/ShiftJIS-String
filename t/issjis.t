@@ -1,5 +1,5 @@
 
-BEGIN { $| = 1; print "1..16\n"; }
+BEGIN { $| = 1; print "1..18\n"; }
 END {print "not ok 1\n" unless $loaded;}
 
 use ShiftJIS::String qw(issjis);
@@ -35,6 +35,15 @@ print "ok 1\n";
   print  issjis("‚ ", "P", "", "¶Ý¼Þ test") ? "ok" : "not ok", " ", ++$n, "\n";
   print !issjis("“ú–{","‚³kanji","\xA0") ? "ok" : "not ok", " ", ++$n, "\n";
 }
+
+$_ = 'Foo';
+$a = issjis("Perl");
+
+print $a
+   ? "ok" : "not ok", " ", ++$n, "\n";
+
+print defined $_ && $_ eq 'Foo'
+   ? "ok" : "not ok", " ", ++$n, "\n";
 
 1;
 __END__

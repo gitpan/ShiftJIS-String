@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '1.03';
+$VERSION = '1.04';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -18,9 +18,9 @@ require Exporter;
     'cmp'  => [qw/strcmp strEQ strNE strLT strLE strGT strGE strxfrm/],
     ctype  => [qw/toupper tolower/],
     'tr'   => [qw/mkrange strtr trclosure/],
-    kana   => [qw/hi2ka ka2hi hiXka/],
-    H2Z    => [qw/kataH2Z kanaH2Z spaceH2Z/],
-    Z2H    => [qw/kataZ2H kanaZ2H spaceZ2H/],
+    'kana' => [qw/hi2ka ka2hi hiXka/],
+    'H2Z'  => [qw/kataH2Z kanaH2Z hiraH2Z spaceH2Z/],
+    'Z2H'  => [qw/kataZ2H kanaZ2H hiraZ2H spaceZ2H/],
 );
 
 $EXPORT_TAGS{all}  = [ map @$_, values %EXPORT_TAGS ];
@@ -521,7 +521,7 @@ sub tolower($)  { &$tolower(@_) }
 ## Kana Letters
 ##
 my $kataTRE = '(?:[\xB3\xB6-\xC4\xCA-\xCE]\xDE|[\xCA-\xCE]\xDF)';
-my $hiraTRE = '(?:\x82\xA4\x81\x4A)';
+my $hiraTRE = '(?:\x82\xA4\x81\x4A)'; # 'う゛'
 my $kanaTRE = "(?:$hiraTRE|$kataTRE)";
 
 my $kataH
@@ -542,10 +542,11 @@ my $hiraZH
     . 'がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ'
     . 'う゛ゐゑゎかけ';
 
-
-my $kataH2Z = trclosure($kataH, $kataZH, 'R', $kanaTRE);
-my $kataZ2H = trclosure($kataZH, $kataH, 'R', $kanaTRE);
+my $kataH2Z = trclosure($kataH,          $kataZH,       'R', $kanaTRE);
+my $hiraH2Z = trclosure($kataH,          $hiraZH,       'R', $kanaTRE);
+my $kataZ2H = trclosure($kataZH,         $kataH,        'R', $kanaTRE);
 my $kanaZ2H = trclosure($hiraZH.$kataZH, $kataH.$kataH, 'R', $kanaTRE);
+my $hiraZ2H = trclosure($hiraZH,         $kataH,        'R', $kanaTRE);
 
 my $kataZ
     = 'ヲァィゥェォャュョッアイウエオカキクケコサシスセソタ'
@@ -565,8 +566,10 @@ my $ka2hi = trclosure($kataZ, $hiraZ, 'R', $hiraTRE);
 
 sub kataH2Z ($) { &$kataH2Z(@_) }
 sub kanaH2Z ($) { &$kataH2Z(@_) }
+sub hiraH2Z ($) { &$hiraH2Z(@_) }
 sub kataZ2H ($) { &$kataZ2H(@_) }
 sub kanaZ2H ($) { &$kanaZ2H(@_) }
+sub hiraZ2H ($) { &$hiraZ2H(@_) }
 sub hiXka   ($) { &$hiXka(@_) }
 sub hi2ka   ($) { &$hi2ka(@_) }
 sub ka2hi   ($) { &$ka2hi(@_) }

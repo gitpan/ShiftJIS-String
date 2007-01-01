@@ -4,7 +4,7 @@ use Carp;
 use strict;
 use vars qw($VERSION $PACKAGE @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION = '1.03';
+$VERSION = '1.04';
 $PACKAGE = 'ShiftJIS::String'; # __PACKAGE__
 
 require Exporter;
@@ -19,9 +19,9 @@ require DynaLoader;
     'cmp'  => [qw/strcmp strEQ strNE strLT strLE strGT strGE strxfrm/],
     ctype  => [qw/toupper tolower/],
     'tr'   => [qw/mkrange strtr trclosure/],
-    kana   => [qw/hi2ka ka2hi hiXka/],
-    H2Z    => [qw/kataH2Z kanaH2Z spaceH2Z/],
-    Z2H    => [qw/kataZ2H kanaZ2H spaceZ2H/],
+    'kana' => [qw/hi2ka ka2hi hiXka/],
+    'H2Z'  => [qw/kataH2Z kanaH2Z hiraH2Z spaceH2Z/],
+    'Z2H'  => [qw/kataZ2H kanaZ2H hiraZ2H spaceZ2H/],
 );
 
 $EXPORT_TAGS{all}  = [ map @$_, values %EXPORT_TAGS ];

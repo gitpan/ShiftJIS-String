@@ -32,6 +32,7 @@ print "ok 1\n";
   $NG = 0;
   for $i (-10..10){
     next if 5.004 > $] && $i < -8;
+    next if 5.004 <= $] && $] < 5.00402;
     for $j (undef,-10..10){
       my $s = CORE::substr($str,$i,$j);
       my $t = ShiftJIS::String::substr($zen,$i,$j);

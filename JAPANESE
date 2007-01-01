@@ -1,5 +1,5 @@
 
-=head1 NAME (名称)
+=head1 名称
 
 ShiftJIS::String - Shift-JIS 文字列操作関数
 
@@ -9,9 +9,9 @@ ShiftJIS::String - Shift-JIS 文字列操作関数
 
   ShiftJIS::String::substr($str, ShiftJIS::String::index($str, $substr));
 
-=head1 本 POD について
+=head1 このPODについて
 
-この POD は Shift-JIS で書かれています。
+このPODは、Shift-JISで書かれています。
 
 'C<あ>' が C<HIRAGANA LETTER A> に見えますか ?
 また、'C<\>' が C<REVERSE SOLIDUS> ではなく C<YEN SIGN> に見えますか ?
@@ -449,6 +449,10 @@ C<'h'> 修飾子を用いると、第一引数が文字列かリファレンスかに拘らず、
 
 C<'R'> 修飾子を用いると、C<'-'> はメタ文字ではなく、
 CORE:: の C<tr'''> 中のように、ハイフンそのものとみなします。
+C<SEARCHLIST>とC<REPLACEMENTLIST>の中に、C<'-'> も C<'\'> も
+含まれていないなら、C<'R'> 修飾子の有無は実行結果に影響を与えませんが、
+C<'R'> 修飾子を指定すると、内部的には、範囲を解釈するための処理が
+明示的に省略されます。
 
   strtr("90 - 32 = 58", "0-9", "A-J");
     # 出力: "JA - DC = FI"
@@ -473,8 +477,8 @@ C<PATTERN> および C<TOPATTERN> を用いると、複数文字からなる部分文字列を
 四個の引数で関数を呼ぶと、C<SEARCHLIST>，C<REPLACEMENTLIST>，
 および C<STRING> は文字単位に分解されます。
 
-五個の引数を渡すと C<SEARCHLIST>，C<REPLACEMENTLIST>，
-および C<STRING> 中の C<PATTERN> にマッチする部分は変換の単位と見なされます。
+五個の引数を渡すと C<SEARCHLIST>，C<REPLACEMENTLIST>，および
+C<STRING> 中の C<PATTERN> にマッチする部分は変換の単位と見なされます。
 
 C<PATTERN> と C<TOPATTERN> との両方を渡すと、
 C<SEARCHLIST> か C<STRING> 中の C<PATTERN> にマッチする部分と、
@@ -605,39 +609,71 @@ C<STRING> を小文字化した文字列を返します。
 そうでない場合、変換後の文字列が返され、
 元の文字列に影響はありません。
 
-B<注意:> C<'ガ'>, C<'パ'> のような濁音（または半濁音）の片仮名
-（または平仮名）と、C<'ｶﾞ'>, C<'ﾊﾟ'> のような濁点付き
-（または半濁点付き）の半角片仮名との間の変換は C<1> と数えます。
-同様に、平仮名 C<'う゛'> と片仮名 C<'ヴ'> の間の
-変換も C<1> と数えます。
+=over 4
+
+=item 注意
 
 =over 4
+
+=item *
+
+C<'ガ'>, C<'パ'> のような濁音・半濁音の平仮名・片仮名と、
+C<'ｶﾞ'>, C<'ﾊﾟ'> のような濁点・半濁点付きの半角片仮名との間の変換は
+C<1> 文字と数えます。同様に、平仮名 C<'う゛'> と、片仮名 C<'ヴ'>
+または濁点付き半角片仮名 C<'ｳﾞ'> の間の変換も C<1> 文字と数えます。
+
+=item *
+
+「半角ｶﾀｶﾅ」の変換には、記号の変換（句点 C<'。'>, 始括弧 C<'「'>,
+終括弧 C<'」'>, 読点 C<'、'>, 中点 C<'・'>, 長音符号 C<'ー'>,
+濁点 C<'゛'>, 半濁点 C<'゜'>）も含まれます。
+平仮名と片仮名の間で変換する場合には、平仮名繰返し記号（C<'ゝ'>, C<'ゞ'>）
+と片仮名繰返し記号（C<'ヽ'>, C<'ヾ'>）の変換も含まれます。
+
+=item *
+
+平仮名C<ゐゑゎ>、片仮名C<ヰヱヮヵヶ>は、変換先に適当な仮名がない場合、
+平仮名C<いえわ>、片仮名C<イエワカケ>から変換した結果で代用します。
+
+=back
 
 =item C<kanaH2Z(STRING)>
 
 =item C<kanaH2Z(SCALAR REF)>
 
-「半角ｶﾀｶﾅ」を「カタカナ」に変換します。
+「半角ｶﾀｶﾅ」を「カタカナ」に変換します。「ひらがな」は変換しません。
 
 =item C<kataH2Z(STRING)>
 
 =item C<kataH2Z(SCALAR REF)>
 
-「半角ｶﾀｶﾅ」を「カタカナ」に変換します。
+「半角ｶﾀｶﾅ」を「カタカナ」に変換します。「ひらがな」は変換しません。
 
 B<注：> C<kataH2Z> は C<kanaH2Z> の別名であり、機能に変わりはありません。
+
+=item C<hiraH2Z(STRING)>
+
+=item C<hiraH2Z(SCALAR REF)>
+
+「半角ｶﾀｶﾅ」を「ひらがな」に変換します。「カタカナ」は変換しません。
 
 =item C<kataZ2H(STRING)>
 
 =item C<kataZ2H(SCALAR REF)>
 
-「カタカナ」を「半角ｶﾀｶﾅ」に変換します。
+「カタカナ」を「半角ｶﾀｶﾅ」に変換します。「ひらがな」は変換しません。
 
 =item C<kanaZ2H(STRING)>
 
 =item C<kanaZ2H(SCALAR REF)>
 
 「ひらがな」および「カタカナ」をそれぞれ「半角ｶﾀｶﾅ」に変換します。
+
+=item C<hiraZ2H(STRING)>
+
+=item C<hiraZ2H(SCALAR REF)>
+
+「ひらがな」を「半角ｶﾀｶﾅ」に変換します。「カタカナ」は変換しません。
 
 =item C<hiXka(STRING)>
 
@@ -650,15 +686,13 @@ B<注：> C<kataH2Z> は C<kanaH2Z> の別名であり、機能に変わりはありません。
 
 =item C<hi2ka(SCALAR REF)>
 
-「ひらがな」を「カタカナ」に変換します。
-「半角ｶﾀｶﾅ」は変換しません。
+「ひらがな」を「カタカナ」に変換します。「半角ｶﾀｶﾅ」は変換しません。
 
 =item C<ka2hi(STRING)>
 
 =item C<ka2hi(SCALAR REF)>
 
-「カタカナ」を「ひらがな」に変換します。
-「半角ｶﾀｶﾅ」は変換しません。
+「カタカナ」を「ひらがな」に変換します。「半角ｶﾀｶﾅ」は変換しません。
 
 =back
 
@@ -731,26 +765,20 @@ Shift-JIS の第二バイトに出て来ないASCII図形文字（C<[\x21-\x3F]>）は
 
 =head1 著者
 
-SADAHIRO Tomoyuki （貞廣 知行）
+SADAHIRO Tomoyuki <SADAHIRO@cpan.org> 貞廣 知行
 
-  SADAHIRO@cpan.org
-
-  http://homepage1.nifty.com/nomenclator/perl/
-
-  Copyright(C) 2001-2004, SADAHIRO Tomoyuki. Japan. All rights reserved.
+  Copyright(C) 2001-2007, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
   This module is free software; you can redistribute it
   and/or modify it under the same terms as Perl itself.
 
-=head1 SEE ALSO
+=head1 関連モジュール
 
 =over 4
 
 =item L<ShiftJIS::Regexp>
 
 =item L<ShiftJIS::Collate>
-
-=item L<String::Multibyte>
 
 =back
 

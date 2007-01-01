@@ -1,5 +1,8 @@
 Revision history for Perl module ShiftJIS::String.
 
+1.04  Mon Jan  1 17:07:22 2007
+    - new functions hiraH2Z() and hiraZ2H are added.
+
 1.03  Sat Apr 24 05:48:48 2004
     - test 22 in test.t is removed since the result of using a substr
       lvalue multiple times is fixed in perl 5.9.1.
