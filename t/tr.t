@@ -25,7 +25,7 @@ print "ok 1\n";
   my @lc = ("", "i", "ia", "ais", "asib","aba");
   my $pen = "THIS IS A PEN. YOU ARE A RABBIT.";
   my($i, $j, $m, $ccnt, $scnt, $ncnt);
-
+  $^W = 0;
   for $m (@mod){
     $NG = 0;
     for $i (0..$#uc) {
