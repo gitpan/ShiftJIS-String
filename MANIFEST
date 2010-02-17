@@ -16,7 +16,13 @@ t/alnum.t
 t/capture.t
 t/index.t
 t/issjis.t
-t/kana.t
+t/kana1.t
+t/kana2.t
+t/kana3.t
+t/kana4.t
+t/kana5.t
+t/kana6.t
+t/kana7.t
 t/length.t
 t/long.t
 t/mkrange.t
