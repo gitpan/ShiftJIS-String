@@ -1,8 +1,13 @@
 Revision history for Perl module ShiftJIS::String.
 
+1.07  Fri Feb 19 22:32:39 2010
+    - kana1.t: thank you CPAN testers! but parhaps I don't realize why
+      it causes parse errors. I tried to tidy up the initialization.
+    - added kana0.t using \xHH and with the same tests as kana1.t.
+
 1.06  Wed Feb 17 22:02:43 2010
     - test: I don't know why kana.t sometimes fails...
-            separated old kana.t into 7 files (kana1.t to kana7.t)
+            divided the old kana.t into 7 files (kana1.t to kana7.t)
 
 1.05  Sun Feb 14 13:46:20 2010
     - tr.t: silence perl 5.11.x warning.

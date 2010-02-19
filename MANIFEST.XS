@@ -16,6 +16,7 @@ t/alnum.t
 t/capture.t
 t/index.t
 t/issjis.t
+t/kana0.t
 t/kana1.t
 t/kana2.t
 t/kana3.t
