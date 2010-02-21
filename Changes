@@ -1,5 +1,8 @@
 Revision history for Perl module ShiftJIS::String.
 
+1.08  Sun Feb 21 14:39:58 2010
+    - replaced kana1.t with kana0.t.
+
 1.07  Fri Feb 19 22:32:39 2010
     - kana1.t: thank you CPAN testers! but parhaps I don't realize why
       it causes parse errors. I tried to tidy up the initialization.
