@@ -1,5 +1,8 @@
 Revision history for Perl module ShiftJIS::String.
 
+1.10  Sat Aug  6 10:57:44 2011
+    - fix the tarball with world writable files.
+
 1.08  Sun Feb 21 14:39:58 2010
     - replaced kana1.t with kana0.t.
 
