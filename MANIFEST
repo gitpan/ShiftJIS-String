@@ -10,8 +10,8 @@ disableXS
 String.xsX	for XSUB
 String.pmX	for XSUB
 META.yml
-JAPANESE	POD in Japanese
 samples/trans.txt
+String/Japanese.pod
 t/alnum.t
 t/capture.t
 t/index.t

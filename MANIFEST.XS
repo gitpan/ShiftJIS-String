@@ -10,8 +10,8 @@ enableXS
 disableXS
 String.pmN	for Pure Perl
 META.yml
-JAPANESE	POD in Japanese
 samples/trans.txt
+String/Japanese.pod
 t/alnum.t
 t/capture.t
 t/index.t

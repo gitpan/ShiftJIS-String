@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               ShiftJIS-String
-version:            1.10
+version:            1.11
 abstract:           functions to manipulate Shift-JIS strings
 author:
     - SADAHIRO Tomoyuki <SADAHIRO@cpan.org>

@@ -1,4 +1,4 @@
-ShiftJIS::String: version 1.10
+ShiftJIS::String: version 1.11
 ==============
 
 NAME
@@ -56,11 +56,6 @@ to build XSUB, type the following:
 PREREQUISITES
 
    Perl 5.003 or later (Recommended: Perl 5.005 or later)
-
-POD
-
-The document in Japanese for this module, named JAPANESE,
-is written in Shift-JIS.
 
 COPYRIGHT AND LICENSE
 
